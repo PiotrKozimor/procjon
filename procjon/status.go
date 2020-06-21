@@ -3,10 +3,10 @@ package procjon
 import (
 	"time"
 
-	"github.com/PiotrKozimor/procjon"
+	"github.com/PiotrKozimor/procjon/pb"
 )
 
-func processAvailabilityAndStatus(s slack, statusCode chan int32, service *procjon.Service) {
+func ProcessAvailabilityAndStatus(s Slack, statusCode chan int32, service *pb.Service) {
 	timerDuration := time.Second * time.Duration(service.Timeout)
 	t := time.NewTimer(timerDuration)
 	c := make(chan int32)
@@ -25,7 +25,7 @@ func processAvailabilityAndStatus(s slack, statusCode chan int32, service *procj
 	}
 }
 
-func processStatus(s slack, statusCode chan int32, service *procjon.Service) {
+func processStatus(s Slack, statusCode chan int32, service *pb.Service) {
 	lastStatusCode := <-statusCode
 	if lastStatusCode != 0 {
 		s.SendStatus(service.ServiceIdentifier, service.Statuses[lastStatusCode])
