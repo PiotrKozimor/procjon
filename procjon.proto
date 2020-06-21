@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+service Procjon{
+    rpc RegisterService(Service) returns (Empty) {}
+    rpc SendServiceStatus(stream ServiceStatus) returns (Empty) {}
+}
+
+message ServiceStatus {
+    string serviceIdentifier = 1;
+    int32 statusCode = 2;
+}
+
+message Service {
+    string serviceIdentifier = 1;
+    map<int32,string> statuses = 2;
+    int32 timeout = 3;
+}
+
+message Empty {
+}
