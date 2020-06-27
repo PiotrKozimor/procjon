@@ -2,38 +2,56 @@ package procjon
 
 import (
 	"time"
-
-	"github.com/PiotrKozimor/procjon/pb"
 )
 
-func ProcessAvailabilityAndStatus(s Slack, statusCode chan int32, service *pb.Service) {
-	timerDuration := time.Second * time.Duration(service.Timeout)
-	t := time.NewTimer(timerDuration)
-	c := make(chan int32)
-	go processStatus(s, c, service)
-	select {
-	case receivedStatusCode, ok := <-statusCode:
-		if !ok {
-			s.SendAvailability(service.ServiceIdentifier, false)
-			break
-		} else {
-			t.Reset(timerDuration)
-			c <- receivedStatusCode
+// DetectAvailabilityChange returns when statusCode channel is closed.
+func DetectAvailabilityChange(statusCode chan int32, availabilityChange chan bool, timeout time.Duration) {
+	t := time.NewTimer(timeout)
+	availableC := make(chan bool)
+	go func() {
+		lastAvailable := true
+		availabilityChange <- true
+		for {
+			available := <-availableC
+			if available != lastAvailable {
+				availabilityChange <- available
+				lastAvailable = available
+			}
 		}
-	case <-t.C:
-		s.SendAvailability(service.ServiceIdentifier, false)
+	}()
+	for {
+		select {
+		case _, ok := <-statusCode:
+			if !ok {
+				availableC <- false
+				return
+			}
+			availableC <- true
+			t.Reset(timeout)
+		case <-t.C:
+			availableC <- false
+		}
 	}
 }
 
-func processStatus(s Slack, statusCode chan int32, service *pb.Service) {
-	lastStatusCode := <-statusCode
+// DetectStatusCodeChange returns when statusCode channel is closed.
+func DetectStatusCodeChange(statusCode chan int32, statusCodeChange chan int32) {
+	lastStatusCode, ok := <-statusCode
+	if !ok {
+		close(statusCodeChange)
+		return
+	}
 	if lastStatusCode != 0 {
-		s.SendStatus(service.ServiceIdentifier, service.Statuses[lastStatusCode])
+		statusCodeChange <- lastStatusCode
 	}
 	for {
-		stCode := <-statusCode
+		stCode, ok := <-statusCode
+		if !ok {
+			close(statusCodeChange)
+			return
+		}
 		if stCode != lastStatusCode {
-			s.SendStatus(service.ServiceIdentifier, service.Statuses[stCode])
+			statusCodeChange <- stCode
 		}
 		lastStatusCode = stCode
 	}
