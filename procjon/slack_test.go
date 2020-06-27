@@ -22,3 +22,19 @@ func TestSendAvailability(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestSendAvailabilities(t *testing.T) {
+	s := Slack{Webhook: os.Getenv("PROCJON_SLACK_WEBHOOK")}
+	availabilities := make(chan bool)
+	go SendAvailabilities(&s, "elastic-sls", availabilities)
+	availabilities <- true
+	availabilities <- false
+}
+
+func TestSendStatuses(t *testing.T) {
+	s := Slack{Webhook: os.Getenv("PROCJON_SLACK_WEBHOOK")}
+	statuses := make(chan string)
+	go SendStatuses(&s, "elastic-sls", statuses)
+	statuses <- "foo"
+	statuses <- "bar"
+}

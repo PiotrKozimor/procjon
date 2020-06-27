@@ -9,6 +9,14 @@ import (
 	"net/http"
 )
 
+type AvailabilitySender interface {
+	SendAvailability(service string, availability bool) error
+}
+
+type StatusSender interface {
+	SendStatus(service string, status string) error
+}
+
 // Slack should be initialized with valid webhook for posting messages
 type Slack struct {
 	Webhook string
@@ -19,9 +27,23 @@ type SlackMessage struct {
 	Text string `json:"text"`
 }
 
+// SendStatuses forever from status channel
+func SendStatuses(sender StatusSender, service string, status chan string) {
+	for {
+		sender.SendStatus(service, <-status)
+	}
+}
+
+// SendAvailabilities forever from available channel
+func SendAvailabilities(sender AvailabilitySender, service string, available chan bool) {
+	for {
+		sender.SendAvailability(service, <-available)
+	}
+}
+
 // SendStatus to Slack webhook
 func (s *Slack) SendStatus(service, status string) error {
-	err := sendSlackMessage(s.Webhook, SlackMessage{Text: fmt.Sprintf("Service %s change it's status to: %s", service, status)})
+	err := sendSlackMessage(s.Webhook, SlackMessage{Text: fmt.Sprintf("Service %s changed it's status to: %s", service, status)})
 	if err != nil {
 		log.Printf("Could not send status update to Slack: %v", err)
 	}
@@ -47,6 +69,9 @@ func sendSlackMessage(webhook string, message SlackMessage) error {
 	marshalled, err := json.Marshal(message)
 	r := bytes.NewReader(marshalled)
 	resp, err := http.Post(webhook, "application/json", r)
+	if err != nil {
+		return err
+	}
 	if resp.StatusCode != 200 {
 		data, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
