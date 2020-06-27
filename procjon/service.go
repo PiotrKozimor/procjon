@@ -18,7 +18,10 @@ func LoadService(db *badger.DB, service *pb.Service, status *pb.ServiceStatus) e
 		if err != nil {
 			return err
 		}
-		err = proto.Unmarshal(marshService.Key(), service)
+		err = marshService.Value(func(val []byte) error {
+			err = proto.Unmarshal(val, service)
+			return err
+		})
 		return err
 	})
 	return err
