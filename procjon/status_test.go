@@ -79,7 +79,6 @@ func TestDetectAvailabilityChange_WithChannelClose(t *testing.T) {
 	cCodes := make(chan int32)
 	cAvail := make(chan bool)
 	go DetectAvailabilityChange(cCodes, cAvail, time.Second)
-	// statusCodes := [...]int32{1, 1, 0, 1, 2, 0}
 	a := <-cAvail
 	if a != true {
 		t.Error("Initial availability not true")

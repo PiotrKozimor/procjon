@@ -13,7 +13,7 @@ func LoadService(db *badger.DB, service *pb.Service, status *pb.ServiceStatus) e
 	err := db.View(func(txn *badger.Txn) error {
 		marshService, err := txn.Get([]byte(status.ServiceIdentifier))
 		if errors.Is(err, badger.ErrKeyNotFound) {
-			return fmt.Errorf("Please register service")
+			return fmt.Errorf("Service not registered")
 		}
 		if err != nil {
 			return err
