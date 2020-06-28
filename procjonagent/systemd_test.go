@@ -12,9 +12,9 @@ func TestGetCurrentStatus(t *testing.T) {
 		t.Error(err)
 	}
 	dut := SystemdServiceMonitor{
-		statuses:   systemdUnitStatuses,
-		connection: conn,
-		unitName:   "dbus.service",
+		Statuses:   SystemdUnitStatuses,
+		Connection: conn,
+		UnitName:   "dbus.service",
 	}
 	status := dut.GetCurrentStatus()
 	if status != 0 {
@@ -28,7 +28,7 @@ func TestGetCurrentStatus_InvalidName(t *testing.T) {
 		t.Error(err)
 	}
 	dut := SystemdServiceMonitor{
-		statuses: map[int32]string{
+		Statuses: map[int32]string{
 			0: "active",
 			1: "reloading",
 			2: "inactive",
@@ -37,8 +37,8 @@ func TestGetCurrentStatus_InvalidName(t *testing.T) {
 			5: "deactivating",
 			6: "unknown",
 		},
-		connection: conn,
-		unitName:   "dbusss.service",
+		Connection: conn,
+		UnitName:   "dbusss.service",
 	}
 	status := dut.GetCurrentStatus()
 	if status != 2 {

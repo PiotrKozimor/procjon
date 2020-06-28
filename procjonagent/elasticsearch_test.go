@@ -78,11 +78,9 @@ func TestElasticsearchStatus(t *testing.T) {
 	}
 	eMock := ElasticMock{cnt: 0, responses: responses}
 	e := ElasticsearchMonitor{
-		host: "localhost",
-		statuses: map[int32]string{
-			0: "green", 1: "yellow", 2: "red", 3: "unknown",
-		},
-		http: &eMock,
+		host:     "localhost",
+		statuses: ElasticsearchStatuses,
+		http:     &eMock,
 	}
 	for i := 0; i < 3; i++ {
 		statusCode := e.GetCurrentStatus()

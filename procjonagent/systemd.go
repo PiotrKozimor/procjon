@@ -6,7 +6,7 @@ import (
 	"github.com/coreos/go-systemd/v22/dbus"
 )
 
-var systemdUnitStatuses = map[int32]string{
+var SystemdUnitStatuses = map[int32]string{
 	0: "active",
 	1: "reloading",
 	2: "inactive",
@@ -17,9 +17,9 @@ var systemdUnitStatuses = map[int32]string{
 }
 
 type SystemdServiceMonitor struct {
-	statuses   map[int32]string
-	unitName   string
-	connection *dbus.Conn
+	Statuses   map[int32]string
+	UnitName   string
+	Connection *dbus.Conn
 }
 
 type systemdUnitStatus struct {
@@ -27,11 +27,11 @@ type systemdUnitStatus struct {
 }
 
 func (m *SystemdServiceMonitor) GetCurrentStatus() int32 {
-	statuses, err := m.connection.ListUnitsByNames([]string{m.unitName})
+	statuses, err := m.Connection.ListUnitsByNames([]string{m.UnitName})
 	if err != nil {
 		return 6
 	}
-	for code, status := range m.statuses {
+	for code, status := range m.Statuses {
 		if status == statuses[0].ActiveState {
 			return code
 		}
@@ -41,5 +41,5 @@ func (m *SystemdServiceMonitor) GetCurrentStatus() int32 {
 }
 
 func (m *SystemdServiceMonitor) GetStatuses() map[int32]string {
-	return m.statuses
+	return m.Statuses
 }

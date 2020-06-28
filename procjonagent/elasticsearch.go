@@ -7,6 +7,13 @@ import (
 	"net/http"
 )
 
+var ElasticsearchStatuses = map[int32]string{
+	0: "green",
+	1: "yellow",
+	2: "red",
+	3: "unknown",
+}
+
 type ClusterHealth struct {
 	Status string
 }
