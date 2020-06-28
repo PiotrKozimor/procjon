@@ -38,7 +38,6 @@ func DetectAvailabilityChange(statusCode chan int32, availabilityChange chan boo
 func DetectStatusCodeChange(statusCode chan int32, statusCodeChange chan int32) {
 	lastStatusCode, ok := <-statusCode
 	if !ok {
-		close(statusCodeChange)
 		return
 	}
 	if lastStatusCode != 0 {
@@ -47,7 +46,6 @@ func DetectStatusCodeChange(statusCode chan int32, statusCodeChange chan int32) 
 	for {
 		stCode, ok := <-statusCode
 		if !ok {
-			close(statusCodeChange)
 			return
 		}
 		if stCode != lastStatusCode {
