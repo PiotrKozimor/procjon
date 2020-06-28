@@ -1,6 +1,6 @@
 language: go
-
 go:
 - 1.14.x
-
+env:
+- SKIP_SLACK=true
 script: go test -v ./...
