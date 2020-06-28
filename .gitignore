@@ -1,6 +1,7 @@
 webhook
 */test-db/
-server
 services
 .vscode
 main
+cmd/procjon
+cmd/procjonagent
