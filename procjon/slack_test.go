@@ -7,8 +7,8 @@ import (
 
 // func TestSendMessage()
 func TestSendStatus(t *testing.T) {
-	if os.Getenv("SKIP_SLACK") == "true" {
-		t.Skip("SKIP_SLACK is set to true, skipping.")
+	if os.Getenv("TRAVIS") == "true" {
+		t.Skip("TRAVIS is set to true, skipping.")
 	}
 	s := Slack{Webhook: os.Getenv("PROCJON_SLACK_WEBHOOK")}
 	err := s.SendStatus("elastic-sls", "foo")
@@ -18,8 +18,8 @@ func TestSendStatus(t *testing.T) {
 }
 
 func TestSendAvailability(t *testing.T) {
-	if os.Getenv("SKIP_SLACK") == "true" {
-		t.Skip("SKIP_SLACK is set to true, skipping.")
+	if os.Getenv("TRAVIS") == "true" {
+		t.Skip("TRAVIS is set to true, skipping.")
 	}
 	s := Slack{Webhook: os.Getenv("PROCJON_SLACK_WEBHOOK")}
 	err := s.SendAvailability("elastic-sls", true)
@@ -30,8 +30,8 @@ func TestSendAvailability(t *testing.T) {
 }
 
 func TestSendAvailabilities(t *testing.T) {
-	if os.Getenv("SKIP_SLACK") == "true" {
-		t.Skip("SKIP_SLACK is set to true, skipping.")
+	if os.Getenv("TRAVIS") == "true" {
+		t.Skip("TRAVIS is set to true, skipping.")
 	}
 	s := Slack{Webhook: os.Getenv("PROCJON_SLACK_WEBHOOK")}
 	availabilities := make(chan bool)
@@ -41,8 +41,8 @@ func TestSendAvailabilities(t *testing.T) {
 }
 
 func TestSendStatuses(t *testing.T) {
-	if os.Getenv("SKIP_SLACK") == "true" {
-		t.Skip("SKIP_SLACK is set to true, skipping.")
+	if os.Getenv("TRAVIS") == "true" {
+		t.Skip("TRAVIS is set to true, skipping.")
 	}
 	s := Slack{Webhook: os.Getenv("PROCJON_SLACK_WEBHOOK")}
 	statuses := make(chan string)

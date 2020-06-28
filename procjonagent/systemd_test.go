@@ -1,12 +1,16 @@
 package procjonagent
 
 import (
+	"os"
 	"testing"
 
 	"github.com/coreos/go-systemd/v22/dbus"
 )
 
 func TestGetCurrentStatus(t *testing.T) {
+	if os.Getenv("TRAVIS") == "true" {
+		t.Skip("TRAVIS is set to true, skipping.")
+	}
 	conn, err := dbus.New()
 	if err != nil {
 		t.Error(err)
@@ -22,6 +26,9 @@ func TestGetCurrentStatus(t *testing.T) {
 }
 
 func TestGetCurrentStatus_InvalidName(t *testing.T) {
+	if os.Getenv("TRAVIS") == "true" {
+		t.Skip("TRAVIS is set to true, skipping.")
+	}
 	conn, err := dbus.New()
 	if err != nil {
 		t.Error(err)

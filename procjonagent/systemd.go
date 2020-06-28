@@ -27,6 +27,7 @@ type systemdUnitStatus struct {
 func (m *SystemdServiceMonitor) GetCurrentStatus() int32 {
 	statuses, err := m.Connection.ListUnitsByNames([]string{m.UnitName})
 	if err != nil {
+		log.Error(err)
 		return 6
 	}
 	for code, status := range systemdUnitStatuses {
