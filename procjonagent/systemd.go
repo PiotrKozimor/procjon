@@ -1,12 +1,11 @@
 package procjonagent
 
 import (
-	"log"
-
 	"github.com/coreos/go-systemd/v22/dbus"
+	log "github.com/sirupsen/logrus"
 )
 
-var SystemdUnitStatuses = map[int32]string{
+var systemdUnitStatuses = map[int32]string{
 	0: "active",
 	1: "reloading",
 	2: "inactive",
@@ -17,7 +16,6 @@ var SystemdUnitStatuses = map[int32]string{
 }
 
 type SystemdServiceMonitor struct {
-	Statuses   map[int32]string
 	UnitName   string
 	Connection *dbus.Conn
 }
@@ -31,15 +29,15 @@ func (m *SystemdServiceMonitor) GetCurrentStatus() int32 {
 	if err != nil {
 		return 6
 	}
-	for code, status := range m.Statuses {
+	for code, status := range systemdUnitStatuses {
 		if status == statuses[0].ActiveState {
 			return code
 		}
 	}
-	log.Printf("Could not find received status in statuses!")
+	log.Errorf("Could not find received status in statuses!")
 	return 6
 }
 
 func (m *SystemdServiceMonitor) GetStatuses() map[int32]string {
-	return m.Statuses
+	return systemdUnitStatuses
 }

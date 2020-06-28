@@ -3,25 +3,25 @@ package procjonagent
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
+
+	log "github.com/sirupsen/logrus"
 )
 
-var ElasticsearchStatuses = map[int32]string{
+var elasticsearchStatuses = map[int32]string{
 	0: "green",
 	1: "yellow",
 	2: "red",
 	3: "unknown",
 }
 
-type ClusterHealth struct {
+type clusterHealth struct {
 	Status string
 }
 
 type ElasticsearchMonitor struct {
-	statuses map[int32]string
-	host     string
-	http     HttpClient
+	host string
+	http HttpClient
 }
 
 type HttpClient interface {
@@ -30,7 +30,7 @@ type HttpClient interface {
 
 // GetCurrentStatus fetches Elasticsearch cluster health from e.host
 func (e *ElasticsearchMonitor) GetCurrentStatus() int32 {
-	var clusterStatus ClusterHealth
+	var clusterStatus clusterHealth
 	resp, err := e.http.Get(fmt.Sprintf("http://%s:9200/_cluster/health", e.host))
 	if err != nil {
 		log.Print(err)
@@ -46,15 +46,15 @@ func (e *ElasticsearchMonitor) GetCurrentStatus() int32 {
 		log.Print(err)
 		return 3
 	}
-	for code, status := range e.statuses {
+	for code, status := range elasticsearchStatuses {
 		if status == clusterStatus.Status {
 			return code
 		}
 	}
-	log.Printf("Could not find received status in statuses!")
+	log.Errorf("Could not find received status in statuses!")
 	return 3
 }
 
 func (e *ElasticsearchMonitor) GetStatuses() map[int32]string {
-	return e.statuses
+	return elasticsearchStatuses
 }
