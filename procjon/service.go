@@ -29,18 +29,12 @@ func LoadService(db *badger.DB, service *pb.Service, status *pb.ServiceStatus) e
 
 func SaveService(db *badger.DB, service *pb.Service) error {
 	err := db.Update(func(txn *badger.Txn) error {
-		key, err := txn.Get([]byte(service.ServiceIdentifier))
-		if badger.ErrKeyNotFound == err {
-			marshalled, err := proto.Marshal(service)
-			if err != nil {
-				return err
-			}
-			txn.Set([]byte(service.ServiceIdentifier), marshalled)
+		marshalled, err := proto.Marshal(service)
+		if err != nil {
+			return err
 		}
-		if key != nil {
-			return fmt.Errorf("Service %s already exists", service.ServiceIdentifier)
-		}
-		return nil
+		err = txn.Set([]byte(service.ServiceIdentifier), marshalled)
+		return err
 	})
 	return err
 }
