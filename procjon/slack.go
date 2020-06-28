@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type AvailabilitySender interface {
@@ -30,14 +31,22 @@ type SlackMessage struct {
 // SendStatuses forever from status channel
 func SendStatuses(sender StatusSender, service string, status chan string) {
 	for {
-		sender.SendStatus(service, <-status)
+		statusToSend := <-status
+		log.Infof("Sending status %s", statusToSend)
+		if err := sender.SendStatus(service, statusToSend); err != nil {
+			log.Error(err)
+		}
 	}
 }
 
 // SendAvailabilities forever from available channel
 func SendAvailabilities(sender AvailabilitySender, service string, available chan bool) {
 	for {
-		sender.SendAvailability(service, <-available)
+		availability := <-available
+		log.Infof("Sending availability %t", availability)
+		if err := sender.SendAvailability(service, availability); err != nil {
+			log.Error(err)
+		}
 	}
 }
 
@@ -45,7 +54,7 @@ func SendAvailabilities(sender AvailabilitySender, service string, available cha
 func (s *Slack) SendStatus(service, status string) error {
 	err := sendSlackMessage(s.Webhook, SlackMessage{Text: fmt.Sprintf("Service %s changed it's status to: %s", service, status)})
 	if err != nil {
-		log.Printf("Could not send status update to Slack: %v", err)
+		log.Errorf("cannot not send status update to Slack: %v", err)
 	}
 	return err
 }
@@ -54,12 +63,12 @@ func (s *Slack) SendStatus(service, status string) error {
 func (s *Slack) SendAvailability(service string, available bool) error {
 	var err error
 	if available {
-		err = sendSlackMessage(s.Webhook, SlackMessage{Text: fmt.Sprintf("Service %s is available.", service)})
+		err = sendSlackMessage(s.Webhook, SlackMessage{Text: fmt.Sprintf("Agent %s is available.", service)})
 	} else {
-		err = sendSlackMessage(s.Webhook, SlackMessage{Text: fmt.Sprintf("Service %s is not available.", service)})
+		err = sendSlackMessage(s.Webhook, SlackMessage{Text: fmt.Sprintf("Agent %s is not available.", service)})
 	}
 	if err != nil {
-		log.Printf("Could not send availability update to Slack: %v", err)
+		log.Errorf("cannot not send availability update to Slack: %v", err)
 	}
 	return err
 }
