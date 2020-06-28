@@ -14,7 +14,9 @@ import (
 )
 
 func init() {
-	log.SetFormatter(&log.TextFormatter{})
+	log.SetFormatter(&log.TextFormatter{
+		FullTimestamp:   true,
+		TimestampFormat: time.Stamp})
 	log.SetOutput(os.Stderr)
 	log.SetLevel(log.InfoLevel)
 }

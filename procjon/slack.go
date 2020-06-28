@@ -32,7 +32,7 @@ type SlackMessage struct {
 func SendStatuses(sender StatusSender, service string, status chan string) {
 	for {
 		statusToSend := <-status
-		log.Infof("Sending status %s", statusToSend)
+		log.WithField("service", service).Infof("Sending status %s", statusToSend)
 		if err := sender.SendStatus(service, statusToSend); err != nil {
 			log.Error(err)
 		}
@@ -43,7 +43,7 @@ func SendStatuses(sender StatusSender, service string, status chan string) {
 func SendAvailabilities(sender AvailabilitySender, service string, available chan bool) {
 	for {
 		availability := <-available
-		log.Infof("Sending availability %t", availability)
+		log.WithField("service", service).Infof("Sending availability %t", availability)
 		if err := sender.SendAvailability(service, availability); err != nil {
 			log.Error(err)
 		}

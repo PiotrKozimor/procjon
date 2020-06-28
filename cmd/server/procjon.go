@@ -15,8 +15,17 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+var logger = log.New()
+
 func init() {
-	log.SetFormatter(&log.TextFormatter{})
+	logger.SetFormatter(&log.TextFormatter{
+		FullTimestamp:   true,
+		TimestampFormat: time.Stamp})
+	logger.SetOutput(os.Stderr)
+	logger.SetLevel(log.InfoLevel)
+	log.SetFormatter(&log.TextFormatter{
+		FullTimestamp:   true,
+		TimestampFormat: time.Stamp})
 	log.SetOutput(os.Stderr)
 	log.SetLevel(log.InfoLevel)
 }
@@ -71,12 +80,12 @@ func (s *server) SendServiceStatus(stream pb.Procjon_SendServiceStatusServer) er
 
 func (s *server) RegisterService(ctx context.Context, service *pb.Service) (*pb.Empty, error) {
 	err := procjon.SaveService(s.db, service)
-	log.Infof("Registered service %s", service.ServiceIdentifier)
+	log.WithField("service", service.ServiceIdentifier).Info("Registered service")
 	return &pb.Empty{}, err
 }
 
 func main() {
-	logger := log.New()
+
 	db, err := badger.Open(badger.DefaultOptions("services").WithLogger(logger))
 	if err != nil {
 		log.Fatal(err)
