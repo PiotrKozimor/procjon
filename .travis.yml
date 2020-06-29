@@ -3,4 +3,7 @@ go:
 - 1.14.x
 env:
 - TRAVIS=true
-script: go test -v ./...
+script: 
+- go test procjon/*
+- go test procjonagent/*
+- go test cmd/server/*
