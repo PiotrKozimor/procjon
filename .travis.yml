@@ -4,6 +4,6 @@ go:
 env:
 - TRAVIS=true
 script: 
-- go test procjon/*
-- go test procjonagent/*
-- go test cmd/server/*
+- go test -v procjon/*
+- go test -v procjonagent/*
+- go test -v cmd/server/*
