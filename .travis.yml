@@ -4,6 +4,6 @@ go:
 env:
 - TRAVIS=true
 script: 
-- go test -v procjon/*
-- go test -v procjonagent/*
-- go test -v cmd/server/*
+- ./test.sh
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

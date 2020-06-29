@@ -84,9 +84,15 @@ func TestProcjon(t *testing.T) {
 	log.Printf("Response: %+v", resp)
 	stream, err := client.SendServiceStatus(context.Background())
 	go func() {
-		avTestVector := []bool{true, false, true}
+		avTestVector := []bool{true, false, true, false}
 		for i := 0; true; i++ {
-			av := <-avC["redis"]
+			av, ok := <-avC["redis"]
+			if !ok {
+				if i != len(avTestVector) {
+					t.Errorf("Not all availabilityTestsVector consumed, i: %d", i)
+				}
+				return
+			}
 			t.Logf("Got availability: %t", av)
 			if av != avTestVector[i] {
 				t.Errorf("Got: %t, wanted: %t", av, avTestVector[i])
@@ -96,7 +102,13 @@ func TestProcjon(t *testing.T) {
 	go func() {
 		stTestVector := []string{"nok", "ok", "nok"}
 		for i := 0; true; i++ {
-			st := <-stC["redis"]
+			st, ok := <-stC["redis"]
+			if !ok {
+				if i != len(stTestVector) {
+					t.Errorf("Not all stTestVector consumed, i: %d", i)
+				}
+				return
+			}
 			t.Logf("Got status: %s", st)
 			if st != stTestVector[i] {
 				t.Errorf("Got: %s, wanted: %s", st, stTestVector[i])
@@ -104,7 +116,7 @@ func TestProcjon(t *testing.T) {
 		}
 	}()
 	inStatusCodes := []int32{0, 1, 4, 0, 0, 0, 1}
-	inDelays := []int32{50, 50, 50, 50, 2000, 50, 50}
+	inDelays := []int32{50, 50, 50, 50, 2000, 50, 500}
 	for i, stC := range inStatusCodes {
 		err = stream.Send(&pb.ServiceStatus{ServiceIdentifier: "redis", StatusCode: stC})
 		if err != nil {
@@ -112,4 +124,11 @@ func TestProcjon(t *testing.T) {
 		}
 		time.Sleep(time.Duration(inDelays[i]) * time.Millisecond)
 	}
+	err = stream.CloseSend()
+	if err != nil {
+		t.Fatalf("Failed to CloseSend: %v", err)
+	}
+	time.Sleep(time.Second)
+	close(avC["redis"])
+	close(stC["redis"])
 }
