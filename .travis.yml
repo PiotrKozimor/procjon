@@ -1,0 +1,9 @@
+language: go
+go:
+- 1.14.x
+env:
+- TRAVIS=true
+script: 
+- ./test.sh
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

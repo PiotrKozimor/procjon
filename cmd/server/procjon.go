@@ -32,7 +32,7 @@ func init() {
 
 type server struct {
 	pb.UnimplementedProcjonServer
-	slack  procjon.Slack
+	slack  procjon.AvailabilityStatusSender
 	db     *badger.DB
 	server pb.UnimplementedProcjonServer
 }
@@ -43,7 +43,7 @@ func (s *server) SendServiceStatus(stream pb.Procjon_SendServiceStatusServer) er
 	if err != nil {
 		return status.Error(codes.Aborted, err.Error())
 	}
-	log.Debugf("Received statusCode %d", serviceStatus.StatusCode)
+	log.WithField("service", service.ServiceIdentifier).Debugf("Received statusCode %d", serviceStatus.StatusCode)
 	err = procjon.LoadService(s.db, &service, serviceStatus)
 	if err != nil {
 		return status.Error(codes.NotFound, err.Error())
@@ -56,11 +56,16 @@ func (s *server) SendServiceStatus(stream pb.Procjon_SendServiceStatusServer) er
 	go func() {
 		for {
 			stCode := <-statusCodesToSend
-			statusesToSend <- service.Statuses[stCode]
+			status, ok := service.Statuses[stCode]
+			if !ok {
+				log.WithField("service", service.ServiceIdentifier).Errorf("Got unregistered status code: %d", stCode)
+			} else {
+				statusesToSend <- status
+			}
 		}
 	}()
-	go procjon.SendStatuses(&s.slack, service.ServiceIdentifier, statusesToSend)
-	go procjon.SendAvailabilities(&s.slack, service.ServiceIdentifier, availabilitiesToSend)
+	go procjon.SendStatuses(s.slack, service.ServiceIdentifier, statusesToSend)
+	go procjon.SendAvailabilities(s.slack, service.ServiceIdentifier, availabilitiesToSend)
 	go procjon.DetectAvailabilityChange(statusCodes1, availabilitiesToSend, time.Duration(service.Timeout)*time.Second)
 	go procjon.DetectStatusCodeChange(statusCodes2, statusCodesToSend)
 	statusCodes1 <- serviceStatus.StatusCode
@@ -72,7 +77,7 @@ func (s *server) SendServiceStatus(stream pb.Procjon_SendServiceStatusServer) er
 			close(statusCodes2)
 			return status.Error(codes.Aborted, err.Error())
 		}
-		log.Debugf("Received statusCode %d", serviceStatus.StatusCode)
+		log.WithField("service", service.ServiceIdentifier).Debugf("Received statusCode %d", serviceStatus.StatusCode)
 		statusCodes1 <- serviceStatus.StatusCode
 		statusCodes2 <- serviceStatus.StatusCode
 	}
@@ -91,7 +96,7 @@ func main() {
 		log.Fatal(err)
 	}
 	var s = server{
-		slack: procjon.Slack{Webhook: os.Getenv("PROCJON_SLACK_WEBHOOK")},
+		slack: &procjon.Slack{Webhook: os.Getenv("PROCJON_SLACK_WEBHOOK")},
 		db:    db,
 	}
 	grpcServer := grpc.NewServer()

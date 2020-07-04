@@ -18,6 +18,11 @@ type StatusSender interface {
 	SendStatus(service string, status string) error
 }
 
+type AvailabilityStatusSender interface {
+	AvailabilitySender
+	StatusSender
+}
+
 // Slack should be initialized with valid webhook for posting messages
 type Slack struct {
 	Webhook string
