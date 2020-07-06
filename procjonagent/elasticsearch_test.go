@@ -18,7 +18,7 @@ func (e *ElasticMock) Get(url string) (resp *http.Response, err error) {
 		return &http.Response{}, errors.New("foo")
 	}
 	resp = &http.Response{StatusCode: 200, Body: ioutil.NopCloser(bytes.NewReader([]byte(e.responses[e.cnt])))}
-	e.cnt += 1
+	e.cnt++
 	return resp, nil
 }
 

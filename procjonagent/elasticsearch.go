@@ -19,12 +19,14 @@ type clusterHealth struct {
 	Status string
 }
 
+// ElasticsearchMonitor holds URL of host to monitor and http client.
 type ElasticsearchMonitor struct {
 	host string
-	http HttpClient
+	http httpClient
 }
 
-type HttpClient interface {
+// httpClient is defined for testing purposes.
+type httpClient interface {
 	Get(url string) (resp *http.Response, err error)
 }
 
@@ -55,6 +57,7 @@ func (e *ElasticsearchMonitor) GetCurrentStatus() int32 {
 	return 3
 }
 
+// GetStatuses defined for ElasticsearchMonitor.
 func (e *ElasticsearchMonitor) GetStatuses() map[int32]string {
 	return elasticsearchStatuses
 }
