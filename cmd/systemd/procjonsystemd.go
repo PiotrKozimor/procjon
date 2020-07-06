@@ -1,16 +1,13 @@
 package main
 
 import (
-	"context"
-	"net"
 	"os"
 	"time"
 
-	"github.com/PiotrKozimor/procjon/pb"
 	"github.com/PiotrKozimor/procjon/procjonagent"
 	"github.com/coreos/go-systemd/v22/dbus"
 	log "github.com/sirupsen/logrus"
-	"google.golang.org/grpc"
+	"github.com/spf13/cobra"
 )
 
 func init() {
@@ -19,51 +16,40 @@ func init() {
 		TimestampFormat: time.Stamp})
 	log.SetOutput(os.Stderr)
 	log.SetLevel(log.InfoLevel)
+	procjonagent.RootCmd.Flags().StringVarP(&unit, "unit", "u", "", "systemd unit to monitor")
+	procjonagent.RootCmd.Use = "procjonsystemd"
+	procjonagent.RootCmd.Short = "procjonsystemd is procjon agent"
+	procjonagent.RootCmd.Long = `Procjonsystemd is procjon agent which monitors status of 
+systemd unit. Please refer to https://www.freedesktop.org/wiki/Software/systemd/dbus/ 
+for description of possible systemd unit states.`
+	procjonagent.RootCmd.Run = func(cmd *cobra.Command, args []string) {
+		l, err := log.ParseLevel(procjonagent.LogLevel)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		log.SetLevel(l)
+		connDbus, err := dbus.New()
+		if err != nil {
+			log.Fatalln(err)
+		}
+		defer connDbus.Close()
+		monitor := procjonagent.SystemdServiceMonitor{
+			UnitName:   unit,
+			Connection: connDbus,
+		}
+		err = procjonagent.HandleMonitor(&monitor)
+		log.Fatalln(err)
+	}
 }
 
+var (
+	unit string
+)
+
 func main() {
-	connDbus, err := dbus.New()
+	err := procjonagent.RootCmd.Execute()
 	if err != nil {
 		log.Fatalln(err)
 	}
-	defer connDbus.Close()
-	monitor := procjonagent.SystemdServiceMonitor{
-		// Statuses:   procjonagent.SystemdUnitStatuses,
-		UnitName:   "redis.service",
-		Connection: connDbus,
-	}
-	conn, err := grpc.Dial("procjon.sock", grpc.WithInsecure(), grpc.WithDialer(func(addr string, timeout time.Duration) (net.Conn, error) {
-		return net.DialTimeout("unix", addr, timeout)
-	}))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer conn.Close()
-	cl := pb.NewProcjonClient(conn)
-	service := pb.Service{
-		ServiceIdentifier: "piotr.redis",
-		Timeout:           20,
-		Statuses:          monitor.GetStatuses(),
-	}
-	serviceStatus := pb.ServiceStatus{
-		ServiceIdentifier: service.ServiceIdentifier,
-		StatusCode:        0,
-	}
-	_, err = cl.RegisterService(context.Background(), &service)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	stream, err := cl.SendServiceStatus(context.Background())
-	if err != nil {
-		log.Fatalln(err)
-	}
-	for {
-		status := monitor.GetCurrentStatus()
-		serviceStatus.StatusCode = status
-		err = stream.Send(&serviceStatus)
-		if err != nil {
-			log.Fatal(err)
-		}
-		time.Sleep(5 * time.Second)
-	}
+
 }
