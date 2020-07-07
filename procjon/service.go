@@ -9,6 +9,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// LoadService from badger. Service is uniquely identified by
+// pb.ServiceStatus.ServiceIdentifier.
 func LoadService(db *badger.DB, service *pb.Service, status *pb.ServiceStatus) error {
 	err := db.View(func(txn *badger.Txn) error {
 		marshService, err := txn.Get([]byte(status.ServiceIdentifier))
@@ -27,6 +29,7 @@ func LoadService(db *badger.DB, service *pb.Service, status *pb.ServiceStatus) e
 	return err
 }
 
+// SaveService to badger using protobuf.
 func SaveService(db *badger.DB, service *pb.Service) error {
 	err := db.Update(func(txn *badger.Txn) error {
 		marshalled, err := proto.Marshal(service)

@@ -10,14 +10,18 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// AvailabilitySender defines sending availability update for service.
 type AvailabilitySender interface {
 	SendAvailability(service string, availability bool) error
 }
 
+// StatusSender defines sending status update for service.
 type StatusSender interface {
 	SendStatus(service string, status string) error
 }
 
+// AvailabilityStatusSender defines sending status and availability
+// update for service.
 type AvailabilityStatusSender interface {
 	AvailabilitySender
 	StatusSender
