@@ -28,6 +28,15 @@ type systemdUnitStatus struct {
 
 // GetCurrentStatus of SystemdServiceMonitor.Unit from dbus.
 func (m *SystemdServiceMonitor) GetCurrentStatus() int32 {
+	log.Errorf("Could not find received status in statuses!")
+	units, err := m.Connection.ListUnitFiles()
+	if err != nil {
+		log.Error(err)
+		return 6
+	}
+	for _, unit := range units {
+		log.Println(unit)
+	}
 	statuses, err := m.Connection.ListUnitsByNames([]string{m.UnitName})
 	if err != nil {
 		log.Error(err)
