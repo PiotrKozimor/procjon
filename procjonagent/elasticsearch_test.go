@@ -121,7 +121,7 @@ func TestElasticsearchStatus(t *testing.T) {
 	}
 }
 
-func TestGetStatuses(t *testing.T) {
+func TestElasticsearchGetStatuses(t *testing.T) {
 	e := ElasticsearchMonitor{}
 	statuses := e.GetStatuses()
 	if !reflect.DeepEqual(statuses, elasticsearchStatuses) {
