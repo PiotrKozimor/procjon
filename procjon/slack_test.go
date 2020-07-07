@@ -38,3 +38,35 @@ func TestSendStatuses(t *testing.T) {
 	statuses <- "foo"
 	statuses <- "bar"
 }
+
+func TestSendStatusesBadMethod(t *testing.T) {
+	s := Slack{Webhook: "https://slack.com/foo"}
+	statuses := make(chan string)
+	go SendStatuses(&s, "elastic-sls", statuses)
+	statuses <- "foo"
+	statuses <- "bar"
+}
+
+func TestSendAvailabilitiesBadMethod(t *testing.T) {
+	s := Slack{Webhook: "https://slack.com/foo"}
+	availabilities := make(chan bool)
+	go SendAvailabilities(&s, "elastic-sls", availabilities)
+	availabilities <- true
+	availabilities <- false
+}
+
+func TestSendStatusesBadURL(t *testing.T) {
+	s := Slack{Webhook: "https://sladw.com/foo"}
+	statuses := make(chan string)
+	go SendStatuses(&s, "elastic-sls", statuses)
+	statuses <- "foo"
+	statuses <- "bar"
+}
+
+func TestSendAvailabilitiesBadURL(t *testing.T) {
+	s := Slack{Webhook: "https://sladw.com/foo"}
+	availabilities := make(chan bool)
+	go SendAvailabilities(&s, "elastic-sls", availabilities)
+	availabilities <- true
+	availabilities <- false
+}
