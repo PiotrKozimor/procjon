@@ -3,6 +3,7 @@ package procjon
 import (
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/PiotrKozimor/procjon/pb"
 	"github.com/dgraph-io/badger/v2"
@@ -33,6 +34,7 @@ func LoadService(db *badger.DB, service *pb.Service, status *pb.ServiceStatus) e
 func SaveService(db *badger.DB, service *pb.Service) error {
 	err := db.Update(func(txn *badger.Txn) error {
 		marshalled, err := proto.Marshal(service)
+		log.Println(marshalled)
 		if err != nil {
 			return err
 		}
