@@ -13,3 +13,6 @@ go test -race -coverprofile=profile.out -covermode=atomic -v cmd/elastic/*.go
 cat profile.out >> coverage.txt
 go test -race -coverprofile=profile.out -covermode=atomic -v cmd/systemd/*.go
 cat profile.out >> coverage.txt
+go test -coverprofile=profile.out -covermode=atomic ./...
+export RUN_ALL=true
+cat profile.out >> coverage.txt
