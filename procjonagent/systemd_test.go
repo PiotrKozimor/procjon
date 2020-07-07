@@ -1,6 +1,7 @@
 package procjonagent
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -37,11 +38,46 @@ func TestSystemdGetCurrentStatus_InvalidName(t *testing.T) {
 	}
 }
 
+type MockedConn struct {
+}
+
+func (m MockedConn) ListUnitsByNames(units []string) ([]dbus.UnitStatus, error) {
+	return nil, errors.New("mocked")
+}
+func TestSystemdGetCurrentStatus_ListUnitsByNamesError(t *testing.T) {
+	conn := MockedConn{}
+	dut := SystemdServiceMonitor{
+		Connection: &conn,
+		UnitName:   "dbusss.service",
+	}
+	status := dut.GetCurrentStatus()
+	if status != 6 {
+		t.Errorf("Got: %d, wanted: %d", status, 6)
+	}
+}
+
+type MockedBasStatusConn struct {
+}
+
+func (m MockedBasStatusConn) ListUnitsByNames(units []string) ([]dbus.UnitStatus, error) {
+	return []dbus.UnitStatus{dbus.UnitStatus{ActiveState: "foo"}}, nil
+}
+func TestSystemdGetCurrentStatus_ListUnitsByNamesBadStatus(t *testing.T) {
+	conn := MockedBasStatusConn{}
+	dut := SystemdServiceMonitor{
+		Connection: &conn,
+		UnitName:   "dbusss.service",
+	}
+	status := dut.GetCurrentStatus()
+	if status != 6 {
+		t.Errorf("Got: %d, wanted: %d", status, 6)
+	}
+}
+
 func TestSystemdGetStatuses(t *testing.T) {
 	e := SystemdServiceMonitor{}
 	statuses := e.GetStatuses()
 	if !reflect.DeepEqual(statuses, systemdUnitStatuses) {
 		t.Errorf("Got: %+v, wanted: %+v", statuses, systemdUnitStatuses)
 	}
-
 }
