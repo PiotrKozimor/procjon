@@ -10,6 +10,7 @@ import (
 	"github.com/PiotrKozimor/procjon/procjon"
 	"github.com/dgraph-io/badger/v2"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -17,18 +18,57 @@ import (
 
 var logger = log.New()
 
+var rootCmd = &cobra.Command{
+	Use:   "procjon",
+	Short: "procjon monitoring server",
+	Long: `Procjon is simple monitoring tool that will report change in 
+availability or status of registered services. Please refer to
+https://github.com/PiotrKozimor/procjon for details.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		l, err := log.ParseLevel(logLevel)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		log.SetLevel(l)
+		logger.SetLevel(l)
+		db, err := badger.Open(badger.DefaultOptions("services").WithLogger(logger))
+		if err != nil {
+			log.Fatal(err)
+		}
+		var s = server{
+			slack: &procjon.Slack{Webhook: os.Getenv("PROCJON_SLACK_WEBHOOK")},
+			db:    db,
+		}
+		grpcServer := grpc.NewServer()
+		pb.RegisterProcjonServer(grpcServer, &s)
+		lis, err := net.Listen("tcp4", listenURL)
+		if err != nil {
+			log.Fatalf("failed to listen: %v", err)
+		}
+		defer lis.Close()
+		grpcServer.Serve(lis)
+	},
+}
+
 func init() {
 	logger.SetFormatter(&log.TextFormatter{
 		FullTimestamp:   true,
 		TimestampFormat: time.Stamp})
 	logger.SetOutput(os.Stderr)
-	logger.SetLevel(log.InfoLevel)
+	// logger.SetLevel(log.InfoLevel)
 	log.SetFormatter(&log.TextFormatter{
 		FullTimestamp:   true,
 		TimestampFormat: time.Stamp})
 	log.SetOutput(os.Stderr)
-	log.SetLevel(log.InfoLevel)
+	// log.SetLevel(log.InfoLevel)
+	rootCmd.Flags().StringVarP(&listenURL, "listen-url", "l", "localhost:8080", "gRPC URL address to listen")
+	rootCmd.Flags().StringVar(&logLevel, "loglevel", "warning", "logrus log level")
 }
+
+var (
+	listenURL string
+	logLevel  string
+)
 
 type server struct {
 	pb.UnimplementedProcjonServer
@@ -90,21 +130,9 @@ func (s *server) RegisterService(ctx context.Context, service *pb.Service) (*pb.
 }
 
 func main() {
+	err := rootCmd.Execute()
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-	db, err := badger.Open(badger.DefaultOptions("services").WithLogger(logger))
-	if err != nil {
-		log.Fatal(err)
-	}
-	var s = server{
-		slack: &procjon.Slack{Webhook: os.Getenv("PROCJON_SLACK_WEBHOOK")},
-		db:    db,
-	}
-	grpcServer := grpc.NewServer()
-	pb.RegisterProcjonServer(grpcServer, &s)
-	lis, err := net.Listen("unix", "procjon.sock")
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
-	defer lis.Close()
-	grpcServer.Serve(lis)
 }
