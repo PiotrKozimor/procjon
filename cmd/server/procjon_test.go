@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/PiotrKozimor/procjon/pb"
+	"github.com/PiotrKozimor/procjon/procjon"
 	"github.com/dgraph-io/badger/v2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
@@ -38,9 +39,9 @@ func (s *MockSlackSender) SendStatus(service string, status string) error {
 
 func init() {
 	db, err := badger.Open(badger.DefaultOptions("").WithInMemory(true))
-	var s = server{
-		slack: &MockSlackSender{},
-		db:    db,
+	var s = procjon.Server{
+		Slack: &MockSlackSender{},
+		DB:    db,
 	}
 	if err != nil {
 		log.Fatal(err)
