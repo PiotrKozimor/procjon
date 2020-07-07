@@ -16,7 +16,7 @@ func init() {
 		TimestampFormat: time.Stamp})
 	log.SetOutput(os.Stderr)
 	log.SetLevel(log.InfoLevel)
-	procjonagent.RootCmd.Flags().StringVar(&host, "host", "http://localhost:9200", "elasticsearch cluster node to monitor")
+	procjonagent.RootCmd.Flags().StringVarP(&host, "host", "h", "http://localhost:9200", "elasticsearch cluster node to monitor")
 	procjonagent.RootCmd.Use = "procjonelastic"
 	procjonagent.RootCmd.Short = "procjonelastic is procjon agent"
 	procjonagent.RootCmd.Long = `Procjonelastic is procjon agent which monitors status of 
