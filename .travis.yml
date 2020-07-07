@@ -3,8 +3,7 @@ language: go
 go:
 - 1.14.x
 env:
-- TRAVIS=true
-- PROCJON_SLACK_WEBHOOK=https://slack.com/api/api.test
+- TRAVIS=true PROCJON_SLACK_WEBHOOK=https://slack.com/api/api.test
 script: 
 - ./test.sh
 after_success:
