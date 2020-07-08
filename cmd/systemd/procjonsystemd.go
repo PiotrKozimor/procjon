@@ -16,7 +16,7 @@ func init() {
 		TimestampFormat: time.Stamp})
 	log.SetOutput(os.Stderr)
 	log.SetLevel(log.InfoLevel)
-	procjonagent.RootCmd.Flags().StringVarP(&unit, "unit", "u", "", "systemd unit to monitor")
+	procjonagent.RootCmd.Flags().StringVarP(&unit, "unit", "u", "dbus.service", "systemd unit to monitor")
 	procjonagent.RootCmd.Use = "procjonsystemd"
 	procjonagent.RootCmd.Short = "procjonsystemd is procjon agent"
 	procjonagent.RootCmd.Long = `Procjonsystemd is procjon agent which monitors status of 
