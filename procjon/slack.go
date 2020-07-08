@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 
 	log "github.com/sirupsen/logrus"
@@ -91,11 +90,7 @@ func sendSlackMessage(webhook string, message SlackMessage) error {
 		return err
 	}
 	if resp.StatusCode != 200 {
-		data, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return err
-		}
-		return fmt.Errorf("cannot send message to Slack: %d, %s", resp.StatusCode, data)
+		return fmt.Errorf("cannot send message to Slack, status code: %d", resp.StatusCode)
 	}
 	return err
 }

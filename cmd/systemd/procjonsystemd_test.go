@@ -10,8 +10,8 @@ import (
 )
 
 func TestProcjonSystemd(t *testing.T) {
-	if os.Getenv("RUN_ALL") == "true" {
-		t.Skip("Skipping - conflict for listening on localhost.")
+	if os.Getenv("SKIP_SYSTEMD") == "true" {
+		t.Skip("Skipping TestProcjonSystemd - conflict for listening on localhost.")
 	}
 	go func() {
 		procjon.RootCmd.Execute()
