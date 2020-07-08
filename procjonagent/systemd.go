@@ -15,15 +15,22 @@ var systemdUnitStatuses = map[int32]string{
 	6: "unknown",
 }
 
+// SystemdServiceMonitor hold unit name to monitor and Connection
+// to talk to dbus.
 type SystemdServiceMonitor struct {
 	UnitName   string
-	Connection *dbus.Conn
+	Connection listUnits
+}
+
+type listUnits interface {
+	ListUnitsByNames(units []string) ([]dbus.UnitStatus, error)
 }
 
 type systemdUnitStatus struct {
 	ActiveStatus string
 }
 
+// GetCurrentStatus of SystemdServiceMonitor.Unit from dbus.
 func (m *SystemdServiceMonitor) GetCurrentStatus() int32 {
 	statuses, err := m.Connection.ListUnitsByNames([]string{m.UnitName})
 	if err != nil {
@@ -39,6 +46,7 @@ func (m *SystemdServiceMonitor) GetCurrentStatus() int32 {
 	return 6
 }
 
+// GetStatuses statuses defined for SystemdServiceMonitor.
 func (m *SystemdServiceMonitor) GetStatuses() map[int32]string {
 	return systemdUnitStatuses
 }

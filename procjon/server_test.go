@@ -1,4 +1,4 @@
-package main
+package procjon
 
 import (
 	"context"
@@ -38,9 +38,9 @@ func (s *MockSlackSender) SendStatus(service string, status string) error {
 
 func init() {
 	db, err := badger.Open(badger.DefaultOptions("").WithInMemory(true))
-	var s = server{
-		slack: &MockSlackSender{},
-		db:    db,
+	var s = Server{
+		Slack: &MockSlackSender{},
+		DB:    db,
 	}
 	if err != nil {
 		log.Fatal(err)

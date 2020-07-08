@@ -4,20 +4,23 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 
 	log "github.com/sirupsen/logrus"
 )
 
+// AvailabilitySender defines sending availability update for service.
 type AvailabilitySender interface {
 	SendAvailability(service string, availability bool) error
 }
 
+// StatusSender defines sending status update for service.
 type StatusSender interface {
 	SendStatus(service string, status string) error
 }
 
+// AvailabilityStatusSender defines sending status and availability
+// update for service.
 type AvailabilityStatusSender interface {
 	AvailabilitySender
 	StatusSender
@@ -87,11 +90,7 @@ func sendSlackMessage(webhook string, message SlackMessage) error {
 		return err
 	}
 	if resp.StatusCode != 200 {
-		data, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return err
-		}
-		return fmt.Errorf("cannot send message to Slack: %d, %s", resp.StatusCode, data)
+		return fmt.Errorf("cannot send message to Slack, status code: %d", resp.StatusCode)
 	}
 	return err
 }

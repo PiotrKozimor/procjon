@@ -4,6 +4,9 @@ services
 .vscode
 main
 cmd/procjon
-cmd/procjonagent
+cmd/procjonsystemd
+cmd/procjonelastic
 coverage.txt
 profile.out
+*.dia
+*.dia~
