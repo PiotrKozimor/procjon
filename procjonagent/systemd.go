@@ -19,7 +19,11 @@ var systemdUnitStatuses = map[int32]string{
 // to talk to dbus.
 type SystemdServiceMonitor struct {
 	UnitName   string
-	Connection *dbus.Conn
+	Connection listUnits
+}
+
+type listUnits interface {
+	ListUnitsByNames(units []string) ([]dbus.UnitStatus, error)
 }
 
 type systemdUnitStatus struct {
