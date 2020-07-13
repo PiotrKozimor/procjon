@@ -2,6 +2,7 @@ package procjon
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"os"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/status"
 )
 
@@ -25,6 +27,8 @@ func init() {
 		TimestampFormat: time.Stamp})
 	log.SetOutput(os.Stderr)
 	RootCmd.Flags().StringVarP(&listenURL, "listen-url", "l", "localhost:8080", "gRPC URL address to listen")
+	RootCmd.Flags().StringVarP(&serverKeyCertPath, "key-cert", "k", "procjon.key", "key certificate path")
+	RootCmd.Flags().StringVarP(&serverCertPath, "cert", "c", "procjon.pem", "certificate path")
 	RootCmd.Flags().StringVar(&logLevel, "loglevel", "warning", "logrus log level")
 }
 
@@ -35,9 +39,11 @@ type Server struct {
 }
 
 var (
-	logger    = log.New()
-	listenURL string
-	logLevel  string
+	logger            = log.New()
+	listenURL         string
+	logLevel          string
+	serverCertPath    string
+	serverKeyCertPath string
 )
 
 var RootCmd = &cobra.Command{
@@ -61,14 +67,26 @@ https://github.com/PiotrKozimor/procjon for details.`,
 			Slack: &Slack{Webhook: os.Getenv("PROCJON_SLACK_WEBHOOK")},
 			DB:    db,
 		}
-		grpcServer := grpc.NewServer()
+		dir, err := os.Getwd()
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(dir)
+		creds, err := credentials.NewServerTLSFromFile(serverCertPath, serverKeyCertPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+		grpcServer := grpc.NewServer(grpc.Creds(creds))
 		pb.RegisterProcjonServer(grpcServer, &s)
 		lis, err := net.Listen("tcp4", listenURL)
 		if err != nil {
 			log.Fatalf("failed to listen: %v", err)
 		}
 		defer lis.Close()
-		grpcServer.Serve(lis)
+		err = grpcServer.Serve(lis)
+		if err != nil {
+			log.Fatalf("failed to listen: %v", err)
+		}
 	},
 }
 
