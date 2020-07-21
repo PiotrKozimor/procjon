@@ -6,5 +6,7 @@ env:
 - TRAVIS=true PROCJON_SLACK_WEBHOOK=https://slack.com/api/api.test
 script: 
 - ./test.sh
+before_script:
+- ./cert-gen.sh
 after_success:
   - bash <(curl -s https://codecov.io/bash)
