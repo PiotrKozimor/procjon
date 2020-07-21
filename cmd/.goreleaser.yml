@@ -7,7 +7,10 @@ before:
     # you may remove this if you don't need go generate
     - go generate ./...
 builds:
-- env:
+- binary: procjon
+  id: procjon
+  main: ./server/procjon.go
+  env:
   - CGO_ENABLED=0
   goos:
   - linux
@@ -17,7 +20,33 @@ builds:
   - arm
   - arm64
   goarm:
-  - 6
+  - 7
+- binary: procjonelastic
+  id: procjonelastic
+  main: ./elastic/procjonelastic.go
+  env:
+  - CGO_ENABLED=0
+  goos:
+  - linux
+  - windows
+  goarch:
+  - amd64
+  - arm
+  - arm64
+  goarm:
+  - 7
+- binary: procjonsystemd
+  id: procjonsystemd
+  main: ./systemd/procjonsystemd.go
+  env:
+  - CGO_ENABLED=0
+  goos:
+  - linux
+  goarch:
+  - amd64
+  - arm
+  - arm64
+  goarm:
   - 7
 archives:
   - name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
