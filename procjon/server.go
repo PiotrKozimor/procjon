@@ -2,6 +2,9 @@ package procjon
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
+	"io/ioutil"
 	"net"
 	"os"
 	"time"
@@ -12,6 +15,7 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/status"
 )
 
@@ -26,6 +30,9 @@ func init() {
 	log.SetOutput(os.Stderr)
 	RootCmd.Flags().StringVarP(&listenURL, "listen-url", "l", "localhost:8080", "gRPC URL address to listen")
 	RootCmd.Flags().StringVar(&logLevel, "loglevel", "warning", "logrus log level")
+	RootCmd.Flags().StringVar(&rootCertPath, "root-cert", "ca.pem", "root certificate path")
+	RootCmd.Flags().StringVarP(&serverCertPath, "cert", "c", "procjon.pem", "certificate path")
+	RootCmd.Flags().StringVarP(&serverKeyCertPath, "key-cert", "k", "procjon.key", "key certificate path")
 }
 
 type Server struct {
@@ -35,9 +42,12 @@ type Server struct {
 }
 
 var (
-	logger    = log.New()
-	listenURL string
-	logLevel  string
+	logger            = log.New()
+	listenURL         string
+	logLevel          string
+	serverCertPath    string
+	serverKeyCertPath string
+	rootCertPath      string
 )
 
 var RootCmd = &cobra.Command{
@@ -61,14 +71,35 @@ https://github.com/PiotrKozimor/procjon for details.`,
 			Slack: &Slack{Webhook: os.Getenv("PROCJON_SLACK_WEBHOOK")},
 			DB:    db,
 		}
-		grpcServer := grpc.NewServer()
+		b, err := ioutil.ReadFile(rootCertPath)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		cp := x509.NewCertPool()
+		if !cp.AppendCertsFromPEM(b) {
+			log.Fatalln("credentials: failed to append certificates")
+		}
+		cert, err := tls.LoadX509KeyPair(serverCertPath, serverKeyCertPath)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		config := tls.Config{
+			Certificates: []tls.Certificate{cert},
+			ClientAuth:   tls.RequireAndVerifyClientCert,
+			ClientCAs:    cp,
+		}
+		creds := credentials.NewTLS(&config)
+		grpcServer := grpc.NewServer(grpc.Creds(creds))
 		pb.RegisterProcjonServer(grpcServer, &s)
 		lis, err := net.Listen("tcp4", listenURL)
 		if err != nil {
 			log.Fatalf("failed to listen: %v", err)
 		}
 		defer lis.Close()
-		grpcServer.Serve(lis)
+		err = grpcServer.Serve(lis)
+		if err != nil {
+			log.Fatalf("failed to listen: %v", err)
+		}
 	},
 }
 

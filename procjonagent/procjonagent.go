@@ -2,6 +2,11 @@ package procjonagent
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
+	"errors"
+	"fmt"
+	"io/ioutil"
 	"os"
 	"time"
 
@@ -9,6 +14,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 // ServiceMonitor can be used to define custom monitor. It is used in
@@ -30,8 +36,13 @@ func init() {
 	RootCmd.Flags().StringVarP(&endpoint, "endpoint", "e", "localhost:8080", "gRPC endpoint of procjon server")
 	RootCmd.Flags().StringVarP(&identifier, "service", "s", "foo", "service identifier")
 	RootCmd.Flags().Int32VarP(&timeout, "timeout", "t", 10, "procjon service timeout [s]")
-	RootCmd.Flags().StringVarP(&LogLevel, "loglevel", "l", "warning", "logrus log level")
 	RootCmd.Flags().Int32VarP(&period, "period", "p", 4, "period for agent to sent status updates with [s]")
+	RootCmd.Flags().StringVarP(&LogLevel, "loglevel", "l", "warning", "logrus log level")
+	RootCmd.Flags().StringVar(&rootCertPath, "root-cert", "ca.pem", "root certificate path")
+	// RootCmd.Flags().StringVarP(&serverCertPath, "cert", "c", "procjonagent.pem", "certificate path")
+	RootCmd.Flags().StringVarP(&serverCertPath, "cert", "c", "procjon.pem", "certificate path")
+	// RootCmd.Flags().StringVarP(&serverKeyCertPath, "key-cert", "k", "procjonagent.key", "key certificate path")
+	RootCmd.Flags().StringVarP(&serverKeyCertPath, "key-cert", "k", "procjon.key", "key certificate path")
 }
 
 var (
@@ -39,8 +50,11 @@ var (
 	identifier string
 	timeout    int32
 	// LogLevel according to logrus level naming convention.
-	LogLevel string
-	period   int32
+	LogLevel          string
+	period            int32
+	rootCertPath      string
+	serverKeyCertPath string
+	serverCertPath    string
 )
 
 // HandleMonitor registers service and periodically send
@@ -55,7 +69,29 @@ func HandleMonitor(m ServiceMonitor) error {
 		ServiceIdentifier: service.ServiceIdentifier,
 		StatusCode:        0,
 	}
-	conn, err := grpc.Dial(endpoint, grpc.WithInsecure())
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(dir)
+	b, err := ioutil.ReadFile(rootCertPath)
+	if err != nil {
+		return err
+	}
+	cp := x509.NewCertPool()
+	if !cp.AppendCertsFromPEM(b) {
+		return errors.New("credentials: failed to append certificates")
+	}
+	cert, err := tls.LoadX509KeyPair(serverCertPath, serverKeyCertPath)
+	if err != nil {
+		return err
+	}
+	config := &tls.Config{
+		InsecureSkipVerify: false,
+		RootCAs:            cp,
+		Certificates:       []tls.Certificate{cert},
+	}
+	conn, err := grpc.Dial(endpoint, grpc.WithTransportCredentials(credentials.NewTLS(config)))
 	if err != nil {
 		return err
 	}
