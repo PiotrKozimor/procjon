@@ -54,10 +54,12 @@ archives:
     format_overrides:
       - goos: windows
         format: zip
+    files:
+    - ../LICENSE
 checksum:
   name_template: 'checksums.txt'
 snapshot:
-  name_template: "{{ .Tag }}-next"
+  name_template: "{{ .Tag }}"
 changelog:
   sort: asc
   filters:
