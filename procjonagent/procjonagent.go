@@ -40,8 +40,8 @@ func init() {
 	RootCmd.Flags().Int32VarP(&period, "period", "p", 4, "period for agent to sent status updates with [s]")
 	RootCmd.Flags().StringVarP(&LogLevel, "loglevel", "l", "warning", "logrus log level")
 	RootCmd.Flags().StringVar(&rootCertPath, "root-cert", "ca.pem", "root certificate path")
-	RootCmd.Flags().StringVarP(&serverCertPath, "cert", "c", "procjon.pem", "certificate path")
-	RootCmd.Flags().StringVarP(&serverKeyCertPath, "key-cert", "k", "procjon.key", "key certificate path")
+	RootCmd.Flags().StringVarP(&agentCertPath, "cert", "c", "procjonagent.pem", "certificate path")
+	RootCmd.Flags().StringVarP(&agentKeyCertPath, "key-cert", "k", "procjonagent.key", "key certificate path")
 }
 
 var (
@@ -49,11 +49,11 @@ var (
 	identifier string
 	timeout    int32
 	// LogLevel according to logrus level naming convention.
-	LogLevel          string
-	period            int32
-	rootCertPath      string
-	serverKeyCertPath string
-	serverCertPath    string
+	LogLevel         string
+	period           int32
+	rootCertPath     string
+	agentKeyCertPath string
+	agentCertPath    string
 )
 
 // HandleMonitor registers service and periodically send
@@ -81,7 +81,7 @@ func HandleMonitor(m ServiceMonitor) error {
 	if !cp.AppendCertsFromPEM(b) {
 		return errors.New("credentials: failed to append certificates")
 	}
-	cert, err := tls.LoadX509KeyPair(serverCertPath, serverKeyCertPath)
+	cert, err := tls.LoadX509KeyPair(agentCertPath, agentKeyCertPath)
 	if err != nil {
 		return err
 	}
