@@ -6,6 +6,7 @@ main
 cmd/procjon
 cmd/procjonsystemd
 cmd/procjonelastic
+cmd/procjonping
 coverage.txt
 profile.out
 *.dia
