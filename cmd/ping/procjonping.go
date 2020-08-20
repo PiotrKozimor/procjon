@@ -17,8 +17,8 @@ func init() {
 	log.SetOutput(os.Stderr)
 	log.SetLevel(log.InfoLevel)
 	procjonagent.RootCmd.Flags().StringVar(&host, "host", "google.com", "host to ping")
-	procjonagent.RootCmd.Flags().Int32Var(&pings, "pings", 5, "number of pings to send")
-	procjonagent.RootCmd.Flags().Int32Var(&pingInterval, "ping-interval", 30, "ping interval [s]")
+	procjonagent.RootCmd.Flags().Int32Var(&pings, "pings", 3, "number of pings to send")
+	procjonagent.RootCmd.Flags().Int32Var(&pingInterval, "ping-interval", 1, "ping interval [s]")
 	procjonagent.RootCmd.Use = "procjonping"
 	procjonagent.RootCmd.Short = "procjonping is procjon agent"
 	procjonagent.RootCmd.Long = `Procjonping is procjon agent which ping given host with ping-interval. 

@@ -17,12 +17,13 @@ go test -race -coverprofile=profile.out -covermode=atomic -v cmd/elastic/*.go
 cat profile.out >> coverage.txt
 go test -race -coverprofile=profile.out -covermode=atomic -v cmd/systemd/*.go
 cat profile.out >> coverage.txt
-# sleep 1
+
+sudo -E go test -race -coverprofile=profile.out -covermode=atomic -v cmd/ping/*.go
+cat profile.out >> coverage.txt
 export SKIP_HANDLE_MONITOR=true
 export SKIP_ELASTIC=true
 go test -coverprofile=profile.out -covermode=atomic -v ./...
 cat profile.out >> coverage.txt
-# sleep 1
 export SKIP_ELASTIC=false
 export SKIP_SYSTEMD=true
 go test -coverprofile=profile.out -covermode=atomic -v ./...
