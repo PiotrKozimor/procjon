@@ -1,6 +1,7 @@
 package procjonagent
 
 import (
+	"github.com/sirupsen/logrus"
 	"github.com/sparrc/go-ping"
 )
 
@@ -20,6 +21,7 @@ func (p *PingMonitor) GetStatuses() map[int32]string {
 func (p *PingMonitor) GetCurrentStatus() int32 {
 	p.Pinger.Run()
 	stats := p.Pinger.Statistics()
+	logrus.Debugln(stats)
 	if stats.PacketsRecv == 0 {
 		return 1
 	} else {
