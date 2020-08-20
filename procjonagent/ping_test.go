@@ -1,6 +1,7 @@
 package procjonagent
 
 import (
+	"os"
 	"testing"
 	"time"
 
@@ -8,32 +9,35 @@ import (
 )
 
 func TestPing(t *testing.T) {
-	pinger, err := ping.NewPinger("google.com")
+	pinger, err := ping.NewPinger(os.Getenv("PING"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	pinger.Count = 3
 	pinger.Timeout = time.Second * 4
-	pinger.Interval = time.Second * 3
+	pinger.Interval = time.Second * 1
 	pinger.SetPrivileged(true)
 	dut := PingMonitor{Pinger: *pinger}
 	status := dut.GetCurrentStatus()
+	t.Log(status)
 	if status != 0 {
 		t.Errorf("Got %d, expected 0", status)
 	}
 }
 
 func TestNoPing(t *testing.T) {
-	pinger, err := ping.NewPinger("10.0.0.0")
+	pinger, err := ping.NewPinger(os.Getenv("NOPING"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	pinger.Count = 3
-	pinger.Timeout = time.Second * 4
-	pinger.Interval = time.Second * 3
+	pinger.Timeout = time.Second * 7
+	pinger.Interval = time.Second * 1
 	pinger.SetPrivileged(true)
 	dut := PingMonitor{Pinger: *pinger}
 	status := dut.GetCurrentStatus()
+	t.Log(status)
+	// log.Println(status)
 	if status != 1 {
 		t.Errorf("Got %d, expected 1", status)
 	}
