@@ -36,8 +36,8 @@ func init() {
 	RootCmd.Version = "v0.2.0-alpha"
 	RootCmd.Flags().StringVarP(&endpoint, "endpoint", "e", "localhost:8080", "gRPC endpoint of procjon server")
 	RootCmd.Flags().StringVarP(&identifier, "service", "s", "foo", "service identifier")
-	RootCmd.Flags().Int32VarP(&timeout, "timeout", "t", 10, "procjon service timeout [s]")
-	RootCmd.Flags().Int32VarP(&period, "period", "p", 4, "period for agent to sent status updates with [s]")
+	RootCmd.Flags().Int32VarP(&Timeout, "timeout", "t", 10, "procjon service timeout [s]")
+	RootCmd.Flags().Int32VarP(&Period, "period", "p", 4, "period for agent to sent status updates with [s]")
 	RootCmd.Flags().StringVarP(&LogLevel, "loglevel", "l", "warning", "logrus log level")
 	RootCmd.Flags().StringVar(&rootCertPath, "root-cert", "ca.pem", "root certificate path")
 	RootCmd.Flags().StringVarP(&agentCertPath, "cert", "c", "procjonagent.pem", "certificate path")
@@ -47,10 +47,12 @@ func init() {
 var (
 	endpoint   string
 	identifier string
-	timeout    int32
+	// Timeout can be altered by specific procjonagent.
+	Timeout int32
 	// LogLevel according to logrus level naming convention.
-	LogLevel         string
-	period           int32
+	LogLevel string
+	// Period can be altered by specific procjonagent.
+	Period           int32
 	rootCertPath     string
 	agentKeyCertPath string
 	agentCertPath    string
@@ -61,7 +63,7 @@ var (
 func HandleMonitor(m ServiceMonitor) error {
 	service := pb.Service{
 		ServiceIdentifier: identifier,
-		Timeout:           timeout,
+		Timeout:           Timeout,
 		Statuses:          m.GetStatuses(),
 	}
 	serviceStatus := pb.ServiceStatus{
