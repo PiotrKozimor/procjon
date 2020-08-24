@@ -1,17 +1,10 @@
 package procjonagent
 
-import (
-	"github.com/sirupsen/logrus"
-	"github.com/sparrc/go-ping"
-)
-
 var pingStatuses = map[int32]string{
-	0: "pinged",
-	1: "unreachable",
+	0: "ok",
 }
 
 type PingMonitor struct {
-	Pinger ping.Pinger
 }
 
 func (p *PingMonitor) GetStatuses() map[int32]string {
@@ -19,12 +12,5 @@ func (p *PingMonitor) GetStatuses() map[int32]string {
 }
 
 func (p *PingMonitor) GetCurrentStatus() int32 {
-	p.Pinger.Run()
-	stats := p.Pinger.Statistics()
-	logrus.Debugln(stats)
-	if stats.PacketsRecv == 0 {
-		return 1
-	} else {
-		return 0
-	}
+	return 0
 }
