@@ -51,7 +51,7 @@ var (
 )
 
 var RootCmd = &cobra.Command{
-	Version: "v0.2.0-alpha",
+	Version: "v0.3.0-alpha",
 	Use:     "procjon",
 	Short:   "procjon monitoring server",
 	Long: `Procjon is simple monitoring tool that will report change in 
