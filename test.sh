@@ -11,14 +11,13 @@ go test -race -coverprofile=profile.out -covermode=atomic -v procjon/status*.go
 cat profile.out >> coverage.txt
 go test -coverprofile=profile.out -covermode=atomic -v procjon/*.go
 cat profile.out >> coverage.txt
-go test -race -coverprofile=profile.out -covermode=atomic -v procjonagent/elasticsearch.go procjonagent/elasticsearch_test.go procjonagent/procjonagent.go procjonagent/procjonagent_test.go procjonagent/systemd.go procjonagent/systemd_test.go
+go test -race -coverprofile=profile.out -covermode=atomic -v procjonagent/*.go
 cat profile.out >> coverage.txt
 go test -race -coverprofile=profile.out -covermode=atomic -v cmd/elastic/*.go
 cat profile.out >> coverage.txt
 go test -race -coverprofile=profile.out -covermode=atomic -v cmd/systemd/*.go
 cat profile.out >> coverage.txt
-
-sudo -E go test -race -coverprofile=profile.out -covermode=atomic -v cmd/ping/*.go
+go test -race -coverprofile=profile.out -covermode=atomic -v cmd/ping/*.go
 cat profile.out >> coverage.txt
 
 export SKIP_HANDLE_MONITOR=true
@@ -28,5 +27,9 @@ go test -coverprofile=profile.out -covermode=atomic -v ./...
 cat profile.out >> coverage.txt
 export SKIP_ELASTIC=false
 export SKIP_SYSTEMD=true
+go test -coverprofile=profile.out -covermode=atomic -v ./...
+cat profile.out >> coverage.txt
+export SKIP_ELASTIC=true
+export SKIP_PING=false
 go test -coverprofile=profile.out -covermode=atomic -v ./...
 cat profile.out >> coverage.txt
