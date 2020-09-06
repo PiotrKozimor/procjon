@@ -33,6 +33,7 @@ func init() {
 		FullTimestamp:   true,
 		TimestampFormat: time.Stamp})
 	log.SetOutput(os.Stderr)
+	RootCmd.Version = "v0.3.1-alpha"
 	RootCmd.Flags().StringVarP(&endpoint, "endpoint", "e", "localhost:8080", "gRPC endpoint of procjon server")
 	RootCmd.Flags().StringVarP(&identifier, "service", "s", "foo", "service identifier")
 	RootCmd.Flags().Int32VarP(&Timeout, "timeout", "t", 10, "procjon service timeout [s]")

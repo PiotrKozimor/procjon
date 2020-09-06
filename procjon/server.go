@@ -51,8 +51,9 @@ var (
 )
 
 var RootCmd = &cobra.Command{
-	Use:   "procjon",
-	Short: "procjon monitoring server",
+	Version: "v0.3.1-alpha",
+	Use:     "procjon",
+	Short:   "procjon monitoring server",
 	Long: `Procjon is simple monitoring tool that will report change in 
 availability or status of registered services. Please refer to
 https://github.com/PiotrKozimor/procjon for details.`,
