@@ -21,26 +21,31 @@ var (
 
 const bufSize = 1024 * 1024
 
-type MockSlackSender struct {
+type MockSender struct {
+	t *testing.T
 }
 
-func (s *MockSlackSender) SendAvailability(service string, availability bool) error {
-	log.Printf("Service: %s, availability: %t", service, availability)
+func (s *MockSender) SendAvailability(service string, availability bool) error {
+	s.t.Logf("Service: %s, availability: %t", service, availability)
 	avC[service] <- availability
 	return nil
 }
 
-func (s *MockSlackSender) SendStatus(service string, status string) error {
-	log.Printf("Service: %s, status: %s", service, status)
+func (s *MockSender) SendStatus(service string, status string) error {
+	s.t.Logf("Service: %s, status: %s", service, status)
 	stC[service] <- status
 	return nil
 }
 
-func init() {
+func bufDialer(context.Context, string) (net.Conn, error) {
+	return lis.Dial()
+}
+
+func TestProcjon(t *testing.T) {
 	db, err := badger.Open(badger.DefaultOptions("").WithInMemory(true))
 	var s = Server{
-		Slack: &MockSlackSender{},
-		DB:    db,
+		Sender: &MockSender{t: t},
+		DB:     db,
 	}
 	if err != nil {
 		log.Fatal(err)
@@ -53,14 +58,6 @@ func init() {
 			log.Fatalf("Server exited with error: %v", err)
 		}
 	}()
-
-}
-
-func bufDialer(context.Context, string) (net.Conn, error) {
-	return lis.Dial()
-}
-
-func TestProcjon(t *testing.T) {
 	avC["redis"] = make(chan bool)
 	stC["redis"] = make(chan string)
 	ctx := context.Background()
@@ -122,13 +119,15 @@ func TestProcjon(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to send status: %v", err)
 		}
+		t.Logf("Sent code: %d", stC)
 		time.Sleep(time.Duration(inDelays[i]) * time.Millisecond)
 	}
 	err = stream.CloseSend()
 	if err != nil {
 		t.Fatalf("Failed to CloseSend: %v", err)
 	}
-	time.Sleep(time.Second)
+	time.Sleep(time.Second * 2)
 	close(avC["redis"])
 	close(stC["redis"])
+	time.Sleep(time.Second * 1)
 }
