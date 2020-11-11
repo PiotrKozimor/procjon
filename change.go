@@ -17,28 +17,31 @@ type Availability struct {
 // NewAvailability creates new Availability object with provided timeout and callback.
 // Use av.Run() function to start detecting availability changes.
 // Call av.Ping() to renew timeout.
+// Callback will be called after first Ping() call. We assume initial inavailability.
 func NewAvailability(timeout time.Duration, callback func(bool)) *Availability {
 	a := Availability{
 		refresh:   make(chan bool, 1),
-		available: true,
+		available: false,
 		callback:  callback,
 		timeout:   timeout,
+		timer:     time.NewTimer(timeout),
 	}
 	return &a
 }
 
 // Ping to renew timeout. Must call Run() before in seperate goroutine.
+// callback is called from this function in seperate goroutine.
 func (a *Availability) Ping() {
 	a.refresh <- true
 	if !a.available {
-		go a.callback(true)
+		a.available = true
 		a.timer.Reset(a.timeout)
+		go a.callback(true)
 	}
 }
 
 // Run will detect availability changes. Should be run in seperate goroutine.
 func (a *Availability) Run() {
-	a.timer = time.NewTimer(a.timeout)
 	for {
 		select {
 		case <-a.timer.C:

@@ -11,13 +11,16 @@ func TestAvailabilityOnePing(t *testing.T) {
 	c := make(chan bool)
 	dut := NewAvailability(time.Millisecond*50, func(available bool) {
 		c <- available
+		t.Logf("%v", available)
 	})
 	go func() {
 		dut.Run()
 	}()
 	dut.Ping()
-	ti := time.Now().UnixNano()
 	avChange := <-c
+	assert.Equal(t, avChange, true)
+	ti := time.Now().UnixNano()
+	avChange = <-c
 	assert.Equal(t, avChange, false)
 	assert.Greater(t, time.Now().UnixNano()-ti, int64(5e7))
 }
@@ -33,8 +36,10 @@ func TestAvailabilityManyPing(t *testing.T) {
 	dut.Ping()
 	dut.Ping()
 	dut.Ping()
-	ti := time.Now().UnixNano()
 	avChange := <-c
+	assert.Equal(t, avChange, true)
+	ti := time.Now().UnixNano()
+	avChange = <-c
 	assert.Equal(t, avChange, false)
 	assert.Greater(t, time.Now().UnixNano()-ti, int64(5e7))
 }
@@ -49,15 +54,20 @@ func TestAvailabilityRecover(t *testing.T) {
 	}()
 	dut.Ping()
 	avChange := <-c
-	assert.Equal(t, avChange, false)
-	dut.Ping()
-	avChange = <-c
 	assert.Equal(t, avChange, true)
 	avChange = <-c
 	assert.Equal(t, avChange, false)
 	dut.Ping()
 	avChange = <-c
 	assert.Equal(t, avChange, true)
+	avChange = <-c
+	assert.Equal(t, avChange, false)
+	dut.Ping()
+	avChange = <-c
+	assert.Equal(t, avChange, true)
+	dut.Ping()
+	avChange = <-c
+	assert.Equal(t, avChange, false)
 }
 
 func TestStatusCode(t *testing.T) {
