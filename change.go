@@ -4,54 +4,64 @@ import (
 	"time"
 )
 
-// DetectAvailabilityChange returns when statusCode channel is closed.
-func DetectAvailabilityChange(statusCode chan int32, availabilityChange chan bool, timeout time.Duration) {
-	t := time.NewTimer(timeout)
-	availableC := make(chan bool)
-	go func() {
-		lastAvailable := true
-		availabilityChange <- true
-		for {
-			available := <-availableC
-			if available != lastAvailable {
-				availabilityChange <- available
-				lastAvailable = available
-			}
-		}
-	}()
+// When Run() is called, callback will be called with false when timeout has expired since last Ping.
+// When pinged after timeout occured. callback will be called with true.
+type Availability struct {
+	timer     *time.Timer
+	refresh   chan bool
+	timeout   time.Duration
+	available bool
+	callback  func(bool)
+}
+
+// NewAvailability creates new Availability object with provided timeout and callback.
+// Use av.Run() function to start detecting availability changes.
+// Call av.Ping() to renew timeout.
+func NewAvailability(timeout time.Duration, callback func(bool)) *Availability {
+	a := Availability{
+		refresh:   make(chan bool, 1),
+		available: true,
+		callback:  callback,
+		timeout:   timeout,
+	}
+	return &a
+}
+
+// Ping to renew timeout. Must call Run() before in seperate goroutine.
+func (a *Availability) Ping() {
+	a.refresh <- true
+	if !a.available {
+		go a.callback(true)
+		a.timer.Reset(a.timeout)
+	}
+}
+
+// Run will detect availability changes. Should be run in seperate goroutine.
+func (a *Availability) Run() {
+	a.timer = time.NewTimer(a.timeout)
 	for {
 		select {
-		case _, ok := <-statusCode:
-			if !ok {
-				availableC <- false
-				return
+		case <-a.timer.C:
+			a.available = false
+			a.callback(false)
+		case <-a.refresh:
+			if !a.timer.Stop() {
+				<-a.timer.C
 			}
-			availableC <- true
-			t.Reset(timeout)
-		case <-t.C:
-			availableC <- false
+			a.timer.Reset(a.timeout)
 		}
 	}
 }
 
-// DetectStatusCodeChange returns when statusCode channel is closed.
-func DetectStatusCodeChange(statusCode chan int32, statusCodeChange chan int32) {
-	lastStatusCode, ok := <-statusCode
-	if !ok {
-		return
-	}
-	if lastStatusCode != 0 {
-		statusCodeChange <- lastStatusCode
-	}
-	for {
-		stCode, ok := <-statusCode
-		if !ok {
-			return
-		}
-		if stCode != lastStatusCode {
-			statusCodeChange <- stCode
-		}
-		lastStatusCode = stCode
-	}
+type StatusCode struct {
+	last int32
+}
 
+// HasChanged returns true if new is different than value from previous call.
+func (stc *StatusCode) HasChanged(new int32) (changed bool) {
+	if new != stc.last {
+		stc.last = new
+		return true
+	}
+	return false
 }
