@@ -1,4 +1,4 @@
-package procjonagent
+package agent
 
 var pingStatuses = map[int32]string{
 	0: "ok",

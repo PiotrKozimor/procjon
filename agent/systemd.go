@@ -1,4 +1,4 @@
-package procjonagent
+package agent
 
 import (
 	"github.com/coreos/go-systemd/v22/dbus"

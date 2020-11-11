@@ -1,4 +1,4 @@
-package procjonagent
+package agent
 
 import (
 	"os"
@@ -33,4 +33,8 @@ func TestHandleMonitor(t *testing.T) {
 		t.Error(err)
 	}()
 	time.Sleep(time.Second * 10)
+}
+
+func TestNewConnection(t *testing.T) {
+	dut := New
 }

@@ -1,4 +1,4 @@
-package procjonagent
+package agent
 
 import (
 	"testing"
