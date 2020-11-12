@@ -1,3 +1,4 @@
+mkdir .certs
 echo "[req]
 default_bits = 4096
 prompt = no
