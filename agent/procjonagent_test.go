@@ -39,7 +39,12 @@ func TestRun(t *testing.T) {
 }
 
 func TestNewConnection(t *testing.T) {
-	conn, err := NewConnection(&DefaultOpts)
+	conn, err := NewConnection(&ConnectionOpts{
+		AgentCertPath:    "../.certs/procjonagent.pem",
+		AgentKeyCertPath: "../.certs/procjonagent.key",
+		RootCertPath:     "../.certs/ca.pem",
+		Endpoint:         "localhost:8080",
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
