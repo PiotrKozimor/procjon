@@ -3,71 +3,24 @@ package procjon
 import (
 	"context"
 	"log"
-	"net"
 	"testing"
 	"time"
 
 	"github.com/PiotrKozimor/procjon/pb"
-	"github.com/dgraph-io/badger/v2"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/test/bufconn"
+	"github.com/PiotrKozimor/procjon/sender"
+	"github.com/stretchr/testify/assert"
 )
-
-var (
-	lis *bufconn.Listener
-	avC = make(map[string]chan bool)
-	stC = make(map[string]chan string)
-)
-
-const bufSize = 1024 * 1024
-
-type MockSender struct {
-	t *testing.T
-}
-
-func (s *MockSender) SendAvailability(service string, availability bool) error {
-	s.t.Logf("Service: %s, availability: %t", service, availability)
-	avC[service] <- availability
-	return nil
-}
-
-func (s *MockSender) SendStatus(service string, status string) error {
-	s.t.Logf("Service: %s, status: %s", service, status)
-	stC[service] <- status
-	return nil
-}
-
-func bufDialer(context.Context, string) (net.Conn, error) {
-	return lis.Dial()
-}
 
 func TestProcjon(t *testing.T) {
-	db, err := badger.Open(badger.DefaultOptions("").WithInMemory(true))
-	var s = Server{
-		Sender: &MockSender{t: t},
-		DB:     db,
+	mock := sender.Mock{
+		Status:       make(chan string),
+		Availability: make(chan string),
+		T:            t,
 	}
-	if err != nil {
-		log.Fatal(err)
-	}
-	lis = bufconn.Listen(bufSize)
-	grpcServer := grpc.NewServer()
-	pb.RegisterProcjonServer(grpcServer, &s)
-	go func() {
-		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatalf("Server exited with error: %v", err)
-		}
-	}()
-	avC["redis"] = make(chan bool)
-	stC["redis"] = make(chan string)
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(bufDialer), grpc.WithInsecure())
-	if err != nil {
-		t.Fatalf("Failed to dial bufnet: %v", err)
-	}
+	conn := MustConnectOnBuffer(&mock)
 	defer conn.Close()
 	client := pb.NewProcjonClient(conn)
-	resp, err := client.RegisterService(ctx, &pb.Service{
+	resp, err := client.RegisterService(context.Background(), &pb.Service{
 		ServiceIdentifier: "redis",
 		Statuses: map[int32]string{
 			0: "ok",
@@ -81,35 +34,29 @@ func TestProcjon(t *testing.T) {
 	log.Printf("Response: %+v", resp)
 	stream, err := client.SendServiceStatus(context.Background())
 	go func() {
-		avTestVector := []bool{true, false, true, false}
+		avTestVector := []string{"redis true", "redis false", "redis true", "redis false"}
 		for i := 0; true; i++ {
-			av, ok := <-avC["redis"]
+			av, ok := <-mock.Availability
 			if !ok {
 				if i != len(avTestVector) {
 					t.Errorf("Not all availabilityTestsVector consumed, i: %d", i)
 				}
 				return
 			}
-			t.Logf("Got availability: %t", av)
-			if av != avTestVector[i] {
-				t.Errorf("Got: %t, wanted: %t", av, avTestVector[i])
-			}
+			assert.Equal(t, avTestVector[i], av)
 		}
 	}()
 	go func() {
-		stTestVector := []string{"nok", "ok", "nok"}
+		stTestVector := []string{"redis nok", "redis ok", "redis nok"}
 		for i := 0; true; i++ {
-			st, ok := <-stC["redis"]
+			st, ok := <-mock.Status
 			if !ok {
 				if i != len(stTestVector) {
 					t.Errorf("Not all stTestVector consumed, i: %d", i)
 				}
 				return
 			}
-			t.Logf("Got status: %s", st)
-			if st != stTestVector[i] {
-				t.Errorf("Got: %s, wanted: %s", st, stTestVector[i])
-			}
+			assert.Equal(t, stTestVector[i], st)
 		}
 	}()
 	inStatusCodes := []int32{0, 1, 4, 0, 0, 0, 1}
@@ -127,7 +74,7 @@ func TestProcjon(t *testing.T) {
 		t.Fatalf("Failed to CloseSend: %v", err)
 	}
 	time.Sleep(time.Second * 2)
-	close(avC["redis"])
-	close(stC["redis"])
+	close(mock.Availability)
+	close(mock.Status)
 	time.Sleep(time.Second * 1)
 }
