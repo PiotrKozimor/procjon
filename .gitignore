@@ -3,8 +3,8 @@ webhook
 services
 .vscode
 main
-cmd/procjon
-cmd/procjonagent
+procjon/procjon
+procjonagent/procjonagent
 coverage.txt
 profile.out
 *.dia
