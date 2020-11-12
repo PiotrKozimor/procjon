@@ -1,11 +1,12 @@
 package agent
 
 import (
-	"os"
 	"testing"
 	"time"
 
-	"github.com/PiotrKozimor/procjon/procjon"
+	"github.com/PiotrKozimor/procjon"
+	"github.com/PiotrKozimor/procjon/sender"
+	"github.com/stretchr/testify/assert"
 )
 
 type MockMonitor struct {
@@ -19,22 +20,28 @@ func (m *MockMonitor) GetStatuses() map[int32]string {
 	return statuses
 }
 
-func TestHandleMonitor(t *testing.T) {
-	if os.Getenv("SKIP_HANDLE_MONITOR") == "true" {
-		t.Skip("Skipping TestHandleMonitor- conflict for listening on localhost.")
+func TestRun(t *testing.T) {
+	mock := &sender.Mock{
+		T:            t,
+		Availability: make(chan string),
+		Status:       make(chan string)}
+	conn := procjon.MustConnectOnBuffer(mock)
+	dut := Agent{
+		Conn:         conn,
+		Indentifier:  "redis",
+		TimeoutSec:   2,
+		UpdatePeriod: 1,
 	}
-	go func() {
-		procjon.RootCmd.Execute()
-	}()
-	time.Sleep(time.Second * 1)
-	m := MockMonitor{}
-	go func() {
-		err := HandleMonitor(&m)
-		t.Error(err)
-	}()
-	time.Sleep(time.Second * 10)
+	go dut.Run(&PingMonitor{})
+	availability := <-mock.Availability
+	assert.Equal(t, availability, "redis true")
+	time.Sleep(time.Second * 3)
 }
 
 func TestNewConnection(t *testing.T) {
-	dut := New
+	conn, err := NewConnection(&DefaultOpts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	conn.Close()
 }

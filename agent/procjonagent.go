@@ -20,31 +20,31 @@ type Agenter interface {
 }
 
 type ConnectionOpts struct {
-	endpoint         string
-	rootCertPath     string
-	agentCertPath    string
-	agentKeyCertPath string
+	Endpoint         string
+	RootCertPath     string
+	AgentCertPath    string
+	AgentKeyCertPath string
 }
 
 type Agent struct {
-	conn         *grpc.ClientConn
-	indentifier  string
-	timeoutSec   int32
-	updatePeriod time.Duration
+	Conn         *grpc.ClientConn
+	Indentifier  string
+	TimeoutSec   int32
+	UpdatePeriod time.Duration
 }
 
 var DefaultOpts = ConnectionOpts{
-	endpoint:         "localhost:8080",
-	agentCertPath:    "procjonagent.pem",
-	agentKeyCertPath: "procjonagent.key",
-	rootCertPath:     "ca.pem",
+	Endpoint:         "localhost:8080",
+	AgentCertPath:    "procjonagent.pem",
+	AgentKeyCertPath: "procjonagent.key",
+	RootCertPath:     "ca.pem",
 }
 
 // NewConnection initializes connection to given endpoint.
 // Certificates in ConnectionOpts must be provided.
 // Connection must be closed. This is done in (*Agent) Run function.
 func NewConnection(opts *ConnectionOpts) (*grpc.ClientConn, error) {
-	b, err := ioutil.ReadFile(opts.rootCertPath)
+	b, err := ioutil.ReadFile(opts.RootCertPath)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func NewConnection(opts *ConnectionOpts) (*grpc.ClientConn, error) {
 	if !cp.AppendCertsFromPEM(b) {
 		return nil, errors.New("credentials: failed to append certificates")
 	}
-	cert, err := tls.LoadX509KeyPair(opts.agentCertPath, opts.agentKeyCertPath)
+	cert, err := tls.LoadX509KeyPair(opts.AgentCertPath, opts.AgentKeyCertPath)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func NewConnection(opts *ConnectionOpts) (*grpc.ClientConn, error) {
 		RootCAs:            cp,
 		Certificates:       []tls.Certificate{cert},
 	}
-	conn, err := grpc.Dial(opts.endpoint, grpc.WithTransportCredentials(credentials.NewTLS(config)))
+	conn, err := grpc.Dial(opts.Endpoint, grpc.WithTransportCredentials(credentials.NewTLS(config)))
 	return conn, err
 }
 
@@ -69,16 +69,16 @@ func NewConnection(opts *ConnectionOpts) (*grpc.ClientConn, error) {
 // statusCode to procjon server. Provide as argument any agent that implements Agenter interface.
 func (a *Agent) Run(ar Agenter) error {
 	service := pb.Service{
-		ServiceIdentifier: a.indentifier,
-		Timeout:           a.timeoutSec,
+		ServiceIdentifier: a.Indentifier,
+		Timeout:           a.TimeoutSec,
 		Statuses:          ar.GetStatuses(),
 	}
 	serviceStatus := pb.ServiceStatus{
 		ServiceIdentifier: service.ServiceIdentifier,
 		StatusCode:        0,
 	}
-	defer a.conn.Close()
-	cl := pb.NewProcjonClient(a.conn)
+	defer a.Conn.Close()
+	cl := pb.NewProcjonClient(a.Conn)
 	_, err := cl.RegisterService(context.Background(), &service)
 	if err != nil {
 		return err
@@ -94,6 +94,6 @@ func (a *Agent) Run(ar Agenter) error {
 		if err != nil {
 			return err
 		}
-		time.Sleep(a.updatePeriod)
+		time.Sleep(a.UpdatePeriod)
 	}
 }
