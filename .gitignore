@@ -16,4 +16,4 @@ profile.out
 *.csr
 *.srl
 dist
-cmd/LICENSE
+.certs
