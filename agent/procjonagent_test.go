@@ -50,3 +50,42 @@ func TestNewConnection(t *testing.T) {
 	}
 	conn.Close()
 }
+
+func TestNewConnectionNoCACert(t *testing.T) {
+	conn, err := NewConnection(&ConnectionOpts{
+		AgentCertPath:    "../.certs/procjonagent.pem",
+		AgentKeyCertPath: "../.certs/procjonagent.key",
+		RootCertPath:     "ca.pem",
+		Endpoint:         "localhost:8080",
+	})
+	if err == nil {
+		t.Fatal("Expected error")
+		conn.Close()
+	}
+}
+
+func TestNewConnectionBadCACert(t *testing.T) {
+	conn, err := NewConnection(&ConnectionOpts{
+		AgentCertPath:    "../.certs/procjonagent.pem",
+		AgentKeyCertPath: "../.certs/procjonagent.key",
+		RootCertPath:     "bad.pem",
+		Endpoint:         "localhost:8080",
+	})
+	if err == nil {
+		t.Fatal("Expected error")
+		conn.Close()
+	}
+}
+
+func TestNewConnectionBadAgentCert(t *testing.T) {
+	conn, err := NewConnection(&ConnectionOpts{
+		AgentCertPath:    "procjonagent.pem",
+		AgentKeyCertPath: "../.certs/procjonagent.key",
+		RootCertPath:     "../.certs/ca.pem",
+		Endpoint:         "localhost:8080",
+	})
+	if err == nil {
+		t.Fatal("Expected error")
+		conn.Close()
+	}
+}
