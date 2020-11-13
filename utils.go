@@ -13,24 +13,6 @@ import (
 
 const bufSize = 1024 * 1024
 
-// type MockSender struct {
-// 	t   *testing.T
-// 	avC map[string]chan bool
-// 	stC map[string]chan string
-// }
-
-// func (s *MockSender) SendAvailability(service string, availability bool) error {
-// 	s.t.Logf("Service: %s, availability: %t", service, availability)
-// 	avC[service] <- availability
-// 	return nil
-// }
-
-// func (s *MockSender) SendStatus(service string, status string) error {
-// 	s.t.Logf("Service: %s, status: %s", service, status)
-// 	stC[service] <- status
-// 	return nil
-// }
-
 func MustConnectOnBuffer(sender Sender) *grpc.ClientConn {
 	db, err := badger.Open(badger.DefaultOptions("").WithInMemory(true))
 	if err != nil {
