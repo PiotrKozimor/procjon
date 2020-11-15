@@ -45,47 +45,36 @@ func TestNewConnection(t *testing.T) {
 		RootCertPath:     "../.certs/ca.pem",
 		Endpoint:         "localhost:8080",
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	conn.Close()
 }
 
 func TestNewConnectionNoCACert(t *testing.T) {
-	conn, err := NewConnection(&ConnectionOpts{
+	_, err := NewConnection(&ConnectionOpts{
 		AgentCertPath:    "../.certs/procjonagent.pem",
 		AgentKeyCertPath: "../.certs/procjonagent.key",
 		RootCertPath:     "ca.pem",
 		Endpoint:         "localhost:8080",
 	})
-	if err == nil {
-		t.Fatal("Expected error")
-		conn.Close()
-	}
+	assert.EqualError(t, err, "open ca.pem: no such file or directory")
 }
 
 func TestNewConnectionBadCACert(t *testing.T) {
-	conn, err := NewConnection(&ConnectionOpts{
+	_, err := NewConnection(&ConnectionOpts{
 		AgentCertPath:    "../.certs/procjonagent.pem",
 		AgentKeyCertPath: "../.certs/procjonagent.key",
 		RootCertPath:     "bad.pem",
 		Endpoint:         "localhost:8080",
 	})
-	if err == nil {
-		t.Fatal("Expected error")
-		conn.Close()
-	}
+	assert.EqualError(t, err, "credentials: failed to append certificates")
 }
 
 func TestNewConnectionBadAgentCert(t *testing.T) {
-	conn, err := NewConnection(&ConnectionOpts{
+	_, err := NewConnection(&ConnectionOpts{
 		AgentCertPath:    "procjonagent.pem",
 		AgentKeyCertPath: "../.certs/procjonagent.key",
 		RootCertPath:     "../.certs/ca.pem",
 		Endpoint:         "localhost:8080",
 	})
-	if err == nil {
-		t.Fatal("Expected error")
-		conn.Close()
-	}
+	assert.EqualError(t, err, "open procjonagent.pem: no such file or directory")
 }
