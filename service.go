@@ -12,7 +12,7 @@ import (
 // LoadService from badger. Service is uniquely identified by
 // pb.ServiceStatus.ServiceIdentifier.
 func LoadService(db *badger.DB, service *pb.Service, status *pb.ServiceStatus) error {
-	err := db.View(func(txn *badger.Txn) error {
+	return db.View(func(txn *badger.Txn) error {
 		marshService, err := txn.Get([]byte(status.ServiceIdentifier))
 		if errors.Is(err, badger.ErrKeyNotFound) {
 			return fmt.Errorf("Service not registered")
@@ -20,13 +20,10 @@ func LoadService(db *badger.DB, service *pb.Service, status *pb.ServiceStatus) e
 		if err != nil {
 			return err
 		}
-		err = marshService.Value(func(val []byte) error {
-			err = proto.Unmarshal(val, service)
-			return err
+		return marshService.Value(func(val []byte) error {
+			return proto.Unmarshal(val, service)
 		})
-		return err
 	})
-	return err
 }
 
 // SaveService to badger using protobuf.
