@@ -13,9 +13,7 @@ func TestAvailabilityOnePing(t *testing.T) {
 		c <- available
 		t.Logf("%v", available)
 	})
-	go func() {
-		dut.Run()
-	}()
+	go dut.Run()
 	dut.Ping()
 	avChange := <-c
 	assert.Equal(t, avChange, true)
@@ -30,9 +28,8 @@ func TestAvailabilityManyPing(t *testing.T) {
 	dut := NewAvailability(time.Millisecond*50, func(available bool) {
 		c <- available
 	})
-	go func() {
-		dut.Run()
-	}()
+	go dut.Run()
+	// time.Sleep(time.Second)
 	dut.Ping()
 	dut.Ping()
 	dut.Ping()
@@ -49,9 +46,7 @@ func TestAvailabilityRecover(t *testing.T) {
 	dut := NewAvailability(time.Millisecond*50, func(available bool) {
 		c <- available
 	})
-	go func() {
-		dut.Run()
-	}()
+	go dut.Run()
 	dut.Ping()
 	avChange := <-c
 	assert.Equal(t, avChange, true)
