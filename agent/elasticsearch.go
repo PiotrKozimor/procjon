@@ -8,11 +8,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var elasticsearchStatuses = map[int32]string{
-	0: "green",
-	1: "yellow",
-	2: "red",
-	3: "unknown",
+var elasticsearchStatuses = []string{
+	"green",
+	"yellow",
+	"red",
+	"unknown",
 }
 
 type clusterHealth struct {
@@ -31,7 +31,7 @@ type httpClient interface {
 }
 
 // GetCurrentStatus fetches Elasticsearch cluster health from e.host
-func (e *Elasticsearch) GetCurrentStatus() int32 {
+func (e *Elasticsearch) GetCurrentStatus() uint32 {
 	var clusterStatus clusterHealth
 	resp, err := e.Client.Get(fmt.Sprintf("%s/_cluster/health", e.Host))
 	if err != nil {
@@ -50,7 +50,7 @@ func (e *Elasticsearch) GetCurrentStatus() int32 {
 	}
 	for code, status := range elasticsearchStatuses {
 		if status == clusterStatus.Status {
-			return code
+			return uint32(code)
 		}
 	}
 	log.Errorf("Could not find received status in statuses!")
@@ -58,6 +58,6 @@ func (e *Elasticsearch) GetCurrentStatus() int32 {
 }
 
 // GetStatuses defined for ElasticsearchMonitor.
-func (e *Elasticsearch) GetStatuses() map[int32]string {
+func (e *Elasticsearch) GetStatuses() []string {
 	return elasticsearchStatuses
 }

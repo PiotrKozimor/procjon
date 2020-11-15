@@ -21,10 +21,10 @@ func TestProcjon(t *testing.T) {
 	defer conn.Close()
 	client := pb.NewProcjonClient(conn)
 	resp, err := client.RegisterService(context.Background(), &pb.Service{
-		ServiceIdentifier: "redis",
-		Statuses: map[int32]string{
-			0: "ok",
-			1: "nok",
+		Identifier: "redis",
+		Statuses: []string{
+			"ok",
+			"nok",
 		},
 		Timeout: 1,
 	})
@@ -59,10 +59,10 @@ func TestProcjon(t *testing.T) {
 			assert.Equal(t, stTestVector[i], st)
 		}
 	}()
-	inStatusCodes := []int32{0, 1, 4, 0, 0, 0, 1}
-	inDelays := []int32{50, 50, 50, 50, 2000, 50, 500}
+	inStatusCodes := []uint32{0, 1, 4, 0, 0, 0, 1}
+	inDelays := []uint32{50, 50, 50, 50, 2000, 50, 500}
 	for i, stC := range inStatusCodes {
-		err = stream.Send(&pb.ServiceStatus{ServiceIdentifier: "redis", StatusCode: stC})
+		err = stream.Send(&pb.ServiceStatus{Identifier: "redis", StatusCode: stC})
 		if err != nil {
 			t.Fatalf("Failed to send status: %v", err)
 		}

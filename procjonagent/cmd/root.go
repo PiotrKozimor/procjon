@@ -17,11 +17,11 @@ var (
 	endpoint   string
 	identifier string
 	// Timeout can be altered by specific procjonagent.
-	Timeout int32
+	Timeout uint32
 	// LogLevel according to logrus level naming convention.
 	LogLevel string
 	// Period can be altered by specific procjonagent.
-	Period           int32
+	Period           uint32
 	rootCertPath     string
 	agentKeyCertPath string
 	agentCertPath    string
@@ -35,8 +35,8 @@ func init() {
 	RootCmd.Version = "v0.3.1-alpha"
 	RootCmd.PersistentFlags().StringVarP(&endpoint, "endpoint", "e", "localhost:8080", "gRPC endpoint of procjon server")
 	RootCmd.PersistentFlags().StringVarP(&identifier, "service", "s", "foo", "service identifier")
-	RootCmd.PersistentFlags().Int32VarP(&Timeout, "timeout", "t", 10, "procjon service timeout [s]")
-	RootCmd.PersistentFlags().Int32VarP(&Period, "period", "p", 4, "period for agent to sent status updates with [s]")
+	RootCmd.PersistentFlags().Uint32VarP(&Timeout, "timeout", "t", 10, "procjon service timeout [s]")
+	RootCmd.PersistentFlags().Uint32VarP(&Period, "period", "p", 4, "period for agent to sent status updates with [s]")
 	RootCmd.PersistentFlags().StringVarP(&LogLevel, "loglevel", "l", "warning", "logrus log level")
 	RootCmd.PersistentFlags().StringVar(&rootCertPath, "root-cert", "ca.pem", "root certificate path")
 	RootCmd.PersistentFlags().StringVarP(&agentCertPath, "cert", "c", "procjonagent.pem", "certificate path")

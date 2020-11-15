@@ -13,7 +13,7 @@ import (
 // pb.ServiceStatus.ServiceIdentifier.
 func LoadService(db *badger.DB, service *pb.Service, status *pb.ServiceStatus) error {
 	return db.View(func(txn *badger.Txn) error {
-		marshService, err := txn.Get([]byte(status.ServiceIdentifier))
+		marshService, err := txn.Get([]byte(status.Identifier))
 		if errors.Is(err, badger.ErrKeyNotFound) {
 			return fmt.Errorf("Service not registered")
 		}
@@ -33,7 +33,7 @@ func SaveService(db *badger.DB, service *pb.Service) error {
 		if err != nil {
 			return err
 		}
-		err = txn.Set([]byte(service.ServiceIdentifier), marshalled)
+		err = txn.Set([]byte(service.Identifier), marshalled)
 		return err
 	})
 	return err

@@ -39,7 +39,7 @@ func TestElasticsearchStatus(t *testing.T) {
 	}
 	for i := 0; i < 3; i++ {
 		statusCode := e.GetCurrentStatus()
-		if statusCode != int32(i) {
+		if statusCode != uint32(i) {
 			t.Errorf("Got status code: %d, wanted: %d", statusCode, i)
 		}
 	}

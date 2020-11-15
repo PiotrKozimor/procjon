@@ -15,8 +15,8 @@ import (
 
 // Agenter is implemented by all of procjonagents.
 type Agenter interface {
-	GetCurrentStatus() int32
-	GetStatuses() map[int32]string
+	GetCurrentStatus() uint32
+	GetStatuses() []string
 }
 
 type ConnectionOpts struct {
@@ -29,7 +29,7 @@ type ConnectionOpts struct {
 type Agent struct {
 	Conn         *grpc.ClientConn
 	Indentifier  string
-	TimeoutSec   int32
+	TimeoutSec   uint32
 	UpdatePeriod time.Duration
 }
 
@@ -69,13 +69,13 @@ func NewConnection(opts *ConnectionOpts) (*grpc.ClientConn, error) {
 // statusCode to procjon server. Provide as argument any agent that implements Agenter interface.
 func (a *Agent) Run(ar Agenter) error {
 	service := pb.Service{
-		ServiceIdentifier: a.Indentifier,
-		Timeout:           a.TimeoutSec,
-		Statuses:          ar.GetStatuses(),
+		Identifier: a.Indentifier,
+		Timeout:    a.TimeoutSec,
+		Statuses:   ar.GetStatuses(),
 	}
 	serviceStatus := pb.ServiceStatus{
-		ServiceIdentifier: service.ServiceIdentifier,
-		StatusCode:        0,
+		Identifier: service.Identifier,
+		StatusCode: 0,
 	}
 	defer a.Conn.Close()
 	cl := pb.NewProcjonClient(a.Conn)

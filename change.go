@@ -53,11 +53,11 @@ func (a *Availability) Run() {
 }
 
 type StatusCode struct {
-	last int32
+	last uint32
 }
 
 // HasChanged returns true if new is different than value from previous call.
-func (stc *StatusCode) HasChanged(new int32) (changed bool) {
+func (stc *StatusCode) HasChanged(new uint32) (changed bool) {
 	if new != stc.last {
 		stc.last = new
 		return true

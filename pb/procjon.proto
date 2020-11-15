@@ -1,5 +1,5 @@
 syntax = "proto3";
-option go_package = "pb";
+option go_package = "./pb";
 
 service Procjon{
     rpc RegisterService(Service) returns (Empty) {}
@@ -7,14 +7,14 @@ service Procjon{
 }
 
 message ServiceStatus {
-    string serviceIdentifier = 1;
-    int32 statusCode = 2;
+    string identifier = 1;
+    uint32 statusCode = 2;
 }
 
 message Service {
-    string serviceIdentifier = 1;
-    map<int32,string> statuses = 2;
-    int32 timeout = 3;
+    string identifier = 1;
+    repeated string statuses = 2;
+    uint32 timeout = 3;
 }
 
 message Empty {

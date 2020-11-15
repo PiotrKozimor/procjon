@@ -1,16 +1,16 @@
 package agent
 
-var pingStatuses = map[int32]string{
-	0: "ok",
+var pingStatuses = []string{
+	"ok",
 }
 
 type PingMonitor struct {
 }
 
-func (p *PingMonitor) GetStatuses() map[int32]string {
+func (p *PingMonitor) GetStatuses() []string {
 	return pingStatuses
 }
 
-func (p *PingMonitor) GetCurrentStatus() int32 {
+func (p *PingMonitor) GetCurrentStatus() uint32 {
 	return 0
 }

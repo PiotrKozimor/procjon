@@ -14,29 +14,30 @@ func TestServiceSaveLoad(t *testing.T) {
 		t.Error(err)
 	}
 	service := pb.Service{
-		ServiceIdentifier: "foo",
-		Timeout:           5,
-		Statuses:          make(map[int32]string),
+		Identifier: "foo",
+		Timeout:    5,
+		Statuses: []string{
+			"green",
+			"yellow",
+			"red",
+		},
 	}
-	service.Statuses[0] = "green"
-	service.Statuses[1] = "yellow"
-	service.Statuses[2] = "red"
 	err = SaveService(db, &service)
 	if err != nil {
 		t.Error(err)
 	}
 	var loadedService pb.Service
-	err = LoadService(db, &loadedService, &pb.ServiceStatus{ServiceIdentifier: "foo", StatusCode: 0})
+	err = LoadService(db, &loadedService, &pb.ServiceStatus{Identifier: "foo", StatusCode: 0})
 	if err != nil {
 		t.Error(err)
 	}
-	if service.Timeout != loadedService.Timeout && service.ServiceIdentifier != loadedService.ServiceIdentifier {
+	if service.Timeout != loadedService.Timeout && service.Identifier != loadedService.Identifier {
 		t.Errorf("\nloadedService: %+v, \nservice: %+v", loadedService, service)
 	}
 	if !reflect.DeepEqual(loadedService.Statuses, service.Statuses) {
 		t.Errorf("\nloadedService: %+v, \nservice: %+v", loadedService, service)
 	}
-	err = LoadService(db, &loadedService, &pb.ServiceStatus{ServiceIdentifier: "bar"})
+	err = LoadService(db, &loadedService, &pb.ServiceStatus{Identifier: "bar"})
 	if err == nil {
 		t.Error("Wanted err, go nil")
 	}
@@ -44,7 +45,7 @@ func TestServiceSaveLoad(t *testing.T) {
 	db.Update(func(txn *badger.Txn) error {
 		return txn.Set([]byte("foo"), []byte("bar"))
 	})
-	err = LoadService(db, &loadedService, &pb.ServiceStatus{ServiceIdentifier: "foo", StatusCode: 0})
+	err = LoadService(db, &loadedService, &pb.ServiceStatus{Identifier: "foo", StatusCode: 0})
 	if err == nil {
 		t.Error("Wanted err, go nil")
 	}
