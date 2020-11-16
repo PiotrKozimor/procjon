@@ -1,10 +1,11 @@
-package procjon
+package procjontest
 
 import (
 	"context"
 	"log"
 	"net"
 
+	"github.com/PiotrKozimor/procjon"
 	"github.com/PiotrKozimor/procjon/pb"
 	"github.com/dgraph-io/badger/v2"
 	"google.golang.org/grpc"
@@ -13,12 +14,12 @@ import (
 
 const bufSize = 1024 * 1024
 
-func MustConnectOnBuffer(sender Sender) *grpc.ClientConn {
+func MustConnectOnBuffer(sender procjon.Sender) *grpc.ClientConn {
 	db, err := badger.Open(badger.DefaultOptions("").WithInMemory(true))
 	if err != nil {
 		log.Fatal(err)
 	}
-	var s = Server{
+	var s = procjon.Server{
 		Sender: sender,
 		DB:     db,
 	}
