@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/PiotrKozimor/procjon/pb"
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
@@ -90,6 +91,7 @@ func (a *Service) Run(ar Agenter, conn *grpc.ClientConn) error {
 		status := ar.GetCurrentStatus()
 		serviceStatus.StatusCode = status
 		err = stream.Send(&serviceStatus)
+		log.Infof("Sending status: %d", serviceStatus.StatusCode)
 		if err != nil {
 			return err
 		}
