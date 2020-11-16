@@ -6,8 +6,10 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"time"
 
 	"github.com/PiotrKozimor/procjon"
+	"github.com/PiotrKozimor/procjon/agent"
 	"github.com/PiotrKozimor/procjon/pb"
 	"github.com/PiotrKozimor/procjon/sender"
 	"github.com/dgraph-io/badger/v2"
@@ -17,13 +19,26 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
+func init() {
+	RootCmd.Flags().StringVarP(&logLevel, "loglevel", "l", "warning", "logrus log level")
+	RootCmd.Flags().StringVarP(&opts.Endpoint, "endpoint", "e", "localhost:8080", "gRPC URL address to listen")
+	RootCmd.Flags().StringVar(&opts.RootCertPath, "root-cert", ".certs/ca.pem", "root certificate path")
+	RootCmd.Flags().StringVarP(&opts.CertPath, "cert", "c", ".certs/procjon.pem", "certificate path")
+	RootCmd.Flags().StringVarP(&opts.KeyCertPath, "key-cert", "k", ".certs/procjon.key", "key certificate path")
+	log.SetFormatter(&log.TextFormatter{
+		FullTimestamp:   true,
+		TimestampFormat: time.Stamp})
+	log.SetOutput(os.Stderr)
+	logger.SetFormatter(&log.TextFormatter{
+		FullTimestamp:   true,
+		TimestampFormat: time.Stamp})
+	logger.SetOutput(os.Stderr)
+}
+
 var (
-	logger            = log.New()
-	listenURL         string
-	logLevel          string
-	serverCertPath    string
-	serverKeyCertPath string
-	rootCertPath      string
+	logger   = log.New()
+	opts     agent.ConnectionOpts
+	logLevel string
 )
 
 var RootCmd = &cobra.Command{
@@ -44,11 +59,15 @@ https://github.com/PiotrKozimor/procjon for details.`,
 		if err != nil {
 			log.Fatal(err)
 		}
+		slackWebhook := os.Getenv("PROCJON_SLACK_WEBHOOK")
+		if len(slackWebhook) == 0 {
+			log.Fatal("Please set PROCJON_SLACK_WEBHOOK env variable.")
+		}
 		var s = procjon.Server{
-			Sender: &sender.Slack{Webhook: os.Getenv("PROCJON_SLACK_WEBHOOK")},
+			Sender: &sender.Slack{Webhook: slackWebhook},
 			DB:     db,
 		}
-		b, err := ioutil.ReadFile(rootCertPath)
+		b, err := ioutil.ReadFile(opts.RootCertPath)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -56,7 +75,7 @@ https://github.com/PiotrKozimor/procjon for details.`,
 		if !cp.AppendCertsFromPEM(b) {
 			log.Fatalln("credentials: failed to append certificates")
 		}
-		cert, err := tls.LoadX509KeyPair(serverCertPath, serverKeyCertPath)
+		cert, err := tls.LoadX509KeyPair(opts.CertPath, opts.KeyCertPath)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -68,7 +87,7 @@ https://github.com/PiotrKozimor/procjon for details.`,
 		creds := credentials.NewTLS(&config)
 		grpcServer := grpc.NewServer(grpc.Creds(creds))
 		pb.RegisterProcjonServer(grpcServer, &s)
-		lis, err := net.Listen("tcp4", listenURL)
+		lis, err := net.Listen("tcp4", opts.Endpoint)
 		if err != nil {
 			log.Fatalf("failed to listen: %v", err)
 		}

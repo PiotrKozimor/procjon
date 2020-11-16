@@ -15,9 +15,9 @@ var systemdUnitStatuses = []string{
 	"unknown",
 }
 
-// SystemdServiceMonitor hold unit name to monitor and Connection
+// SystemdService hold unit name to monitor and Connection
 // to talk to dbus.
-type SystemdServiceMonitor struct {
+type SystemdService struct {
 	UnitName   string
 	Connection listUnits
 }
@@ -31,7 +31,7 @@ type systemdUnitStatus struct {
 }
 
 // GetCurrentStatus of SystemdServiceMonitor.Unit from dbus.
-func (m *SystemdServiceMonitor) GetCurrentStatus() uint32 {
+func (m *SystemdService) GetCurrentStatus() uint32 {
 	statuses, err := m.Connection.ListUnitsByNames([]string{m.UnitName})
 	if err != nil {
 		log.Error(err)
@@ -47,6 +47,6 @@ func (m *SystemdServiceMonitor) GetCurrentStatus() uint32 {
 }
 
 // GetStatuses statuses defined for SystemdServiceMonitor.
-func (m *SystemdServiceMonitor) GetStatuses() []string {
+func (m *SystemdService) GetStatuses() []string {
 	return systemdUnitStatuses
 }

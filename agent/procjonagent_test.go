@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/PiotrKozimor/procjon/procjontest"
+	"github.com/PiotrKozimor/procjon"
 	"github.com/PiotrKozimor/procjon/sender"
 	"github.com/stretchr/testify/assert"
 )
@@ -25,7 +25,7 @@ func TestRun(t *testing.T) {
 		T:            t,
 		Availability: make(chan string),
 		Status:       make(chan string)}
-	conn := procjontest.MustConnectOnBuffer(mock)
+	conn := procjon.MustConnectOnBuffer(mock)
 	dut := Service{
 		Indentifier:     "redis",
 		TimeoutSec:      2,

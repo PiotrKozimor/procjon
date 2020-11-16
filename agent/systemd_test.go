@@ -13,7 +13,7 @@ func TestSystemdGetCurrentStatus(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	dut := SystemdServiceMonitor{
+	dut := SystemdService{
 		Connection: conn,
 		UnitName:   "systemd-journald.service",
 	}
@@ -28,7 +28,7 @@ func TestSystemdGetCurrentStatus_InvalidName(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	dut := SystemdServiceMonitor{
+	dut := SystemdService{
 		Connection: conn,
 		UnitName:   "dbusss.service",
 	}
@@ -46,7 +46,7 @@ func (m MockedConn) ListUnitsByNames(units []string) ([]dbus.UnitStatus, error) 
 }
 func TestSystemdGetCurrentStatus_ListUnitsByNamesError(t *testing.T) {
 	conn := MockedConn{}
-	dut := SystemdServiceMonitor{
+	dut := SystemdService{
 		Connection: &conn,
 		UnitName:   "dbusss.service",
 	}
@@ -64,7 +64,7 @@ func (m MockedBasStatusConn) ListUnitsByNames(units []string) ([]dbus.UnitStatus
 }
 func TestSystemdGetCurrentStatus_ListUnitsByNamesBadStatus(t *testing.T) {
 	conn := MockedBasStatusConn{}
-	dut := SystemdServiceMonitor{
+	dut := SystemdService{
 		Connection: &conn,
 		UnitName:   "dbusss.service",
 	}
@@ -75,7 +75,7 @@ func TestSystemdGetCurrentStatus_ListUnitsByNamesBadStatus(t *testing.T) {
 }
 
 func TestSystemdGetStatuses(t *testing.T) {
-	e := SystemdServiceMonitor{}
+	e := SystemdService{}
 	statuses := e.GetStatuses()
 	if !reflect.DeepEqual(statuses, systemdUnitStatuses) {
 		t.Errorf("Got: %+v, wanted: %+v", statuses, systemdUnitStatuses)

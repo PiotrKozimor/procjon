@@ -21,10 +21,10 @@ var elasticCmd = &cobra.Command{
 elasticsearch cluster. Please refer to https://www.elastic.co/guide/en/elasticsearch/reference/current/cluster-health.html 
 for description of possible elasticsearch cluster health statuses.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		a := NewAgent()
+		defer conn.Close()
 		monitor := agent.Elasticsearch{
 			Host:   host,
 			Client: http.DefaultClient,
 		}
-		log.Fatalln(a.Run(&monitor))
+		log.Fatalln(service.Run(&monitor, conn))
 	}}

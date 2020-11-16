@@ -7,62 +7,49 @@ import (
 	"github.com/PiotrKozimor/procjon/agent"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
 )
 
 // RootCmd is default command that can be consumed by procjonagent.
 // Common flags are defined for this command
-var RootCmd = &cobra.Command{}
+var RootCmd = &cobra.Command{
+	Use:     "procjonagent",
+	Version: "v0.3.1-alpha",
+	Run: func(cmd *cobra.Command, args []string) {
+		print("No subcommand provided. Use -h flags to see subcommands that will run specific procjonagent\n")
+	},
+}
 
 var (
-	endpoint   string
-	identifier string
-	// Timeout can be altered by specific procjonagent.
-	Timeout uint32
-	// LogLevel according to logrus level naming convention.
+	opts     agent.ConnectionOpts
+	service  agent.Service
+	conn     *grpc.ClientConn
+	err      error
 	LogLevel string
-	// Period can be altered by specific procjonagent.
-	Period           uint32
-	rootCertPath     string
-	agentKeyCertPath string
-	agentCertPath    string
 )
 
 func init() {
+	cobra.OnInitialize(func() {
+		conn, err = agent.NewConnection(&opts)
+		if err != nil {
+			log.Fatal(err)
+		}
+		l, err := log.ParseLevel(LogLevel)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.SetLevel(l)
+	})
 	log.SetFormatter(&log.TextFormatter{
 		FullTimestamp:   true,
 		TimestampFormat: time.Stamp})
 	log.SetOutput(os.Stderr)
-	RootCmd.Version = "v0.3.1-alpha"
-	RootCmd.PersistentFlags().StringVarP(&endpoint, "endpoint", "e", "localhost:8080", "gRPC endpoint of procjon server")
-	RootCmd.PersistentFlags().StringVarP(&identifier, "service", "s", "foo", "service identifier")
-	RootCmd.PersistentFlags().Uint32VarP(&Timeout, "timeout", "t", 10, "procjon service timeout [s]")
-	RootCmd.PersistentFlags().Uint32VarP(&Period, "period", "p", 4, "period for agent to sent status updates with [s]")
 	RootCmd.PersistentFlags().StringVarP(&LogLevel, "loglevel", "l", "warning", "logrus log level")
-	RootCmd.PersistentFlags().StringVar(&rootCertPath, "root-cert", "ca.pem", "root certificate path")
-	RootCmd.PersistentFlags().StringVarP(&agentCertPath, "cert", "c", "procjonagent.pem", "certificate path")
-	RootCmd.PersistentFlags().StringVarP(&agentKeyCertPath, "key-cert", "k", "procjonagent.key", "key certificate path")
-}
-
-func NewAgent() agent.Agent {
-	l, err := log.ParseLevel(LogLevel)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	log.SetLevel(l)
-	conn, err := agent.NewConnection(&agent.ConnectionOpts{
-		AgentCertPath:    agentCertPath,
-		AgentKeyCertPath: agentKeyCertPath,
-		Endpoint:         endpoint,
-		RootCertPath:     rootCertPath,
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	a := agent.Agent{
-		Conn:         conn,
-		Indentifier:  identifier,
-		TimeoutSec:   Timeout,
-		UpdatePeriod: time.Duration(Period) * time.Second,
-	}
-	return a
+	RootCmd.PersistentFlags().StringVarP(&service.Indentifier, "service", "s", "foo", "service identifier")
+	RootCmd.PersistentFlags().Uint32VarP(&service.TimeoutSec, "timeout", "t", 10, "procjon service timeout [s]")
+	RootCmd.PersistentFlags().Uint32VarP(&service.UpdatePeriodSec, "period", "p", 4, "period for agent to sent status updates with [s]")
+	RootCmd.PersistentFlags().StringVarP(&opts.Endpoint, "endpoint", "e", "localhost:8080", "gRPC endpoint of procjon server")
+	RootCmd.PersistentFlags().StringVar(&opts.RootCertPath, "root-cert", ".certs/ca.pem", "root certificate path")
+	RootCmd.PersistentFlags().StringVarP(&opts.CertPath, "cert", "c", ".certs/procjonagent.pem", "certificate path")
+	RootCmd.PersistentFlags().StringVarP(&opts.KeyCertPath, "key-cert", "k", ".certs/procjonagent.key", "key certificate path")
 }

@@ -16,7 +16,7 @@ var pingCmd = &cobra.Command{
 	Long: `ping is procjon agent which just returns ok status.
 	Can be used to monitor host it is running on (e.g. network connection and power status).`,
 	Run: func(cmd *cobra.Command, args []string) {
-		a := NewAgent()
-		monitor := agent.PingMonitor{}
-		log.Fatalln(a.Run(&monitor))
+		defer conn.Close()
+		monitor := agent.Ping{}
+		log.Fatalln(service.Run(&monitor, conn))
 	}}

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/PiotrKozimor/procjon/pb"
-	"github.com/PiotrKozimor/procjon/procjontest"
 	"github.com/PiotrKozimor/procjon/sender"
 	"github.com/stretchr/testify/assert"
 )
@@ -18,7 +17,7 @@ func TestProcjon(t *testing.T) {
 		Availability: make(chan string),
 		T:            t,
 	}
-	conn := procjontest.MustConnectOnBuffer(&mock)
+	conn := MustConnectOnBuffer(&mock)
 	defer conn.Close()
 	client := pb.NewProcjonClient(conn)
 	resp, err := client.RegisterService(context.Background(), &pb.Service{

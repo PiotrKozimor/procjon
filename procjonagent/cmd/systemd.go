@@ -20,15 +20,16 @@ var systemdCmd = &cobra.Command{
 	systemd unit. Please refer to https://www.freedesktop.org/wiki/Software/systemd/dbus/ 
 	for description of possible systemd unit states.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		a := NewAgent()
+		defer conn.Close()
 		connDbus, err := dbus.New()
 		if err != nil {
 			log.Fatalln(err)
 		}
 		defer connDbus.Close()
-		monitor := agent.SystemdServiceMonitor{
+
+		monitor := agent.SystemdService{
 			UnitName:   unit,
 			Connection: connDbus,
 		}
-		log.Fatalln(a.Run(&monitor))
+		log.Fatalln(service.Run(&monitor, conn))
 	}}
