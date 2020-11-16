@@ -4,13 +4,13 @@ var pingStatuses = []string{
 	"ok",
 }
 
-type PingMonitor struct {
+type Ping struct {
 }
 
-func (p *PingMonitor) GetStatuses() []string {
+func (p *Ping) GetStatuses() []string {
 	return pingStatuses
 }
 
-func (p *PingMonitor) GetCurrentStatus() uint32 {
+func (p *Ping) GetCurrentStatus() uint32 {
 	return 0
 }
