@@ -20,24 +20,23 @@ type Agenter interface {
 }
 
 type ConnectionOpts struct {
-	Endpoint         string
-	RootCertPath     string
-	AgentCertPath    string
-	AgentKeyCertPath string
+	Endpoint     string
+	RootCertPath string
+	CertPath     string
+	KeyCertPath  string
 }
 
-type Agent struct {
-	Conn         *grpc.ClientConn
-	Indentifier  string
-	TimeoutSec   uint32
-	UpdatePeriod time.Duration
+type Service struct {
+	Indentifier     string
+	TimeoutSec      uint32
+	UpdatePeriodSec uint32
 }
 
 var DefaultOpts = ConnectionOpts{
-	Endpoint:         "localhost:8080",
-	AgentCertPath:    "procjonagent.pem",
-	AgentKeyCertPath: "procjonagent.key",
-	RootCertPath:     "ca.pem",
+	Endpoint:     "localhost:8080",
+	CertPath:     "procjonagent.pem",
+	KeyCertPath:  "procjonagent.key",
+	RootCertPath: "ca.pem",
 }
 
 // NewConnection initializes connection to given endpoint.
@@ -52,7 +51,7 @@ func NewConnection(opts *ConnectionOpts) (*grpc.ClientConn, error) {
 	if !cp.AppendCertsFromPEM(b) {
 		return nil, errors.New("credentials: failed to append certificates")
 	}
-	cert, err := tls.LoadX509KeyPair(opts.AgentCertPath, opts.AgentKeyCertPath)
+	cert, err := tls.LoadX509KeyPair(opts.CertPath, opts.KeyCertPath)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +66,7 @@ func NewConnection(opts *ConnectionOpts) (*grpc.ClientConn, error) {
 
 // Run registers service in running procjon server and periodically send
 // statusCode to procjon server. Provide as argument any agent that implements Agenter interface.
-func (a *Agent) Run(ar Agenter) error {
+func (a *Service) Run(ar Agenter, conn *grpc.ClientConn) error {
 	service := pb.Service{
 		Identifier: a.Indentifier,
 		Timeout:    a.TimeoutSec,
@@ -77,8 +76,8 @@ func (a *Agent) Run(ar Agenter) error {
 		Identifier: service.Identifier,
 		StatusCode: 0,
 	}
-	defer a.Conn.Close()
-	cl := pb.NewProcjonClient(a.Conn)
+	defer conn.Close()
+	cl := pb.NewProcjonClient(conn)
 	_, err := cl.RegisterService(context.Background(), &service)
 	if err != nil {
 		return err
@@ -94,6 +93,6 @@ func (a *Agent) Run(ar Agenter) error {
 		if err != nil {
 			return err
 		}
-		time.Sleep(a.UpdatePeriod)
+		time.Sleep(time.Second * time.Duration(a.UpdatePeriodSec))
 	}
 }

@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/PiotrKozimor/procjon"
+	"github.com/PiotrKozimor/procjon/procjontest"
 	"github.com/PiotrKozimor/procjon/sender"
 	"github.com/stretchr/testify/assert"
 )
@@ -25,14 +25,13 @@ func TestRun(t *testing.T) {
 		T:            t,
 		Availability: make(chan string),
 		Status:       make(chan string)}
-	conn := procjon.MustConnectOnBuffer(mock)
-	dut := Agent{
-		Conn:         conn,
-		Indentifier:  "redis",
-		TimeoutSec:   2,
-		UpdatePeriod: 1,
+	conn := procjontest.MustConnectOnBuffer(mock)
+	dut := Service{
+		Indentifier:     "redis",
+		TimeoutSec:      2,
+		UpdatePeriodSec: 1,
 	}
-	go dut.Run(&PingMonitor{})
+	go dut.Run(&Ping{}, conn)
 	availability := <-mock.Availability
 	assert.Equal(t, availability, "redis true")
 	time.Sleep(time.Second * 3)
@@ -40,10 +39,10 @@ func TestRun(t *testing.T) {
 
 func TestNewConnection(t *testing.T) {
 	conn, err := NewConnection(&ConnectionOpts{
-		AgentCertPath:    "../.certs/procjonagent.pem",
-		AgentKeyCertPath: "../.certs/procjonagent.key",
-		RootCertPath:     "../.certs/ca.pem",
-		Endpoint:         "localhost:8080",
+		CertPath:     "../.certs/procjonagent.pem",
+		KeyCertPath:  "../.certs/procjonagent.key",
+		RootCertPath: "../.certs/ca.pem",
+		Endpoint:     "localhost:8080",
 	})
 	assert.Nil(t, err)
 	conn.Close()
@@ -51,30 +50,30 @@ func TestNewConnection(t *testing.T) {
 
 func TestNewConnectionNoCACert(t *testing.T) {
 	_, err := NewConnection(&ConnectionOpts{
-		AgentCertPath:    "../.certs/procjonagent.pem",
-		AgentKeyCertPath: "../.certs/procjonagent.key",
-		RootCertPath:     "ca.pem",
-		Endpoint:         "localhost:8080",
+		CertPath:     "../.certs/procjonagent.pem",
+		KeyCertPath:  "../.certs/procjonagent.key",
+		RootCertPath: "ca.pem",
+		Endpoint:     "localhost:8080",
 	})
 	assert.EqualError(t, err, "open ca.pem: no such file or directory")
 }
 
 func TestNewConnectionBadCACert(t *testing.T) {
 	_, err := NewConnection(&ConnectionOpts{
-		AgentCertPath:    "../.certs/procjonagent.pem",
-		AgentKeyCertPath: "../.certs/procjonagent.key",
-		RootCertPath:     "bad.pem",
-		Endpoint:         "localhost:8080",
+		CertPath:     "../.certs/procjonagent.pem",
+		KeyCertPath:  "../.certs/procjonagent.key",
+		RootCertPath: "bad.pem",
+		Endpoint:     "localhost:8080",
 	})
 	assert.EqualError(t, err, "credentials: failed to append certificates")
 }
 
 func TestNewConnectionBadAgentCert(t *testing.T) {
 	_, err := NewConnection(&ConnectionOpts{
-		AgentCertPath:    "procjonagent.pem",
-		AgentKeyCertPath: "../.certs/procjonagent.key",
-		RootCertPath:     "../.certs/ca.pem",
-		Endpoint:         "localhost:8080",
+		CertPath:     "procjonagent.pem",
+		KeyCertPath:  "../.certs/procjonagent.key",
+		RootCertPath: "../.certs/ca.pem",
+		Endpoint:     "localhost:8080",
 	})
 	assert.EqualError(t, err, "open procjonagent.pem: no such file or directory")
 }
