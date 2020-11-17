@@ -35,9 +35,9 @@ type Service struct {
 
 var DefaultOpts = ConnectionOpts{
 	Endpoint:     "localhost:8080",
-	CertPath:     "procjonagent.pem",
-	KeyCertPath:  "procjonagent.key",
-	RootCertPath: "ca.pem",
+	CertPath:     ".certs/procjonagent.pem",
+	KeyCertPath:  ".certs/procjonagent.key",
+	RootCertPath: ".certs/ca.pem",
 }
 
 // NewConnection initializes connection to given endpoint.

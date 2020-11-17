@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"github.com/PiotrKozimor/procjon/agent"
 )
@@ -18,7 +19,7 @@ func (a *MyAgent) GetStatuses() []string {
 }
 
 func (a *MyAgent) GetCurrentStatus() uint32 {
-	if a.cnt > 10 {
+	if a.cnt > 5 {
 		return 1
 	} else {
 		return 0
@@ -38,8 +39,11 @@ func main() {
 	myAgent := MyAgent{
 		cnt: 0,
 	}
-	go log.Fatal(service.Run(&myAgent, conn))
-	for i := 0; i < 30; i++ {
+	go func() {
+		log.Fatal(service.Run(&myAgent, conn))
+	}()
+	for i := 0; i < 10; i++ {
 		myAgent.cnt++
+		time.Sleep(time.Second)
 	}
 }
