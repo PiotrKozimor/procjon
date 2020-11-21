@@ -3,10 +3,8 @@ webhook
 services
 .vscode
 main
-cmd/procjon
-cmd/procjonsystemd
-cmd/procjonelastic
-cmd/procjonping
+procjon/procjon
+procjonagent/procjonagent
 coverage.txt
 profile.out
 *.dia
@@ -18,4 +16,4 @@ profile.out
 *.csr
 *.srl
 dist
-cmd/LICENSE
+.certs
