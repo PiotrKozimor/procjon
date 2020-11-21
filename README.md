@@ -9,18 +9,16 @@
 
 
 Procjon is simple monitoring tool written in Go. It is a deamon which sends updates to Slack webhook when status of monitored service changes.
-Service status is sent to procjon by procjonagent. 
+Service status is sent to procjon by procjonagent. Service is abstracted by `Servicer` interface. It can be for example host itself, systemd unit or elasticsearch node.
 
 <img src="doc/arch.svg" width="600">
-<!-- ![arch](doc/arch.svg) -->
 
 How does procjon work?
- - Service must be registered first. Service identifier, service timeout and array of Human redable statuses are sent.
+ - Service must be registered first. Service identifier, service timeout and array of human redable statuses are sent.
  - Then, service is periodically pinged - only identifier and status index is sent.
  - After first ping, procjon sends service availability update to Slack, indicating that service is available. 
  - When status sent in ping changes, procjon sends service status update to Slack.
  - When status sent in first ping is non-zero, procjon sends service status update to Slack.
-
 
 Important operating principle of procjon is that reliability of monitoring server is higher that infrastructure to monitor. Procjon was designed to deal with unreliable internal infrastructure and many processes which were set-up and then left forgotten (e.g. long term tests). HA is not yet planned. 
 
@@ -44,5 +42,5 @@ When you stop procjonagent, procjon will sent message to Slack after 10s (defaul
 ## Procjonagent
 Three procjonagents are implemented: `ping`, `elasticsearch` and `systemd`. Each agent is subcommand in `procjonagent`.
 
-Each agent implements `Agenter` interface. Own agent can be easily implemented and integrated into existing application. Please see [example](example/main.go).
+Each agent implements `Servicer` interface. Own agent can be easily implemented and integrated into existing application. Please see [example](example/main.go).
 

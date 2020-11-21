@@ -6,19 +6,20 @@ import (
 	"github.com/slack-go/slack"
 )
 
-// Slack should be initialized with valid webhook for posting messages
+// Slack should be initialized with valid webhook for posting messages.
+// See https://api.slack.com/messaging/webhooks for instructions on how to setup incoming webhooks.
 type Slack struct {
 	Webhook string
 }
 
-// SendStatus to Slack webhook
+// SendStatus nicely formatted to Slack webhook.
 func (s *Slack) SendStatus(service, status string) error {
 	return slack.PostWebhook(s.Webhook, &slack.WebhookMessage{
 		Text: fmt.Sprintf("Service %s changed it's status to: %s", service, status),
 	})
 }
 
-// SendAvailability to Slack webhook
+// SendAvailability nicely formatted to Slack webhook.
 func (s *Slack) SendAvailability(service string, available bool) error {
 	var text string
 	if available {

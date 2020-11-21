@@ -14,8 +14,8 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
-// Agenter is implemented by all of procjonagents.
-type Agenter interface {
+// Servicer is implemented by all of procjonagents.
+type Servicer interface {
 	GetCurrentStatus() uint32
 	GetStatuses() []string
 }
@@ -42,7 +42,7 @@ var DefaultOpts = ConnectionOpts{
 
 // NewConnection initializes connection to given endpoint.
 // Certificates in ConnectionOpts must be provided.
-// Connection must be closed. This is done in (*Agent) Run function.
+// Connection must be closed. This is done in (*Service) Run function.
 func NewConnection(opts *ConnectionOpts) (*grpc.ClientConn, error) {
 	b, err := ioutil.ReadFile(opts.RootCertPath)
 	if err != nil {
@@ -66,12 +66,12 @@ func NewConnection(opts *ConnectionOpts) (*grpc.ClientConn, error) {
 }
 
 // Run registers service in running procjon server and periodically send
-// statusCode to procjon server. Provide as argument any agent that implements Agenter interface.
-func (a *Service) Run(ar Agenter, conn *grpc.ClientConn) error {
+// statusCode to procjon server. Provide as argument any agent that implements Servicer interface.
+func (a *Service) Run(servicer Servicer, conn *grpc.ClientConn) error {
 	service := pb.Service{
 		Identifier: a.Indentifier,
 		Timeout:    a.TimeoutSec,
-		Statuses:   ar.GetStatuses(),
+		Statuses:   servicer.GetStatuses(),
 	}
 	serviceStatus := pb.ServiceStatus{
 		Identifier: service.Identifier,
@@ -88,7 +88,7 @@ func (a *Service) Run(ar Agenter, conn *grpc.ClientConn) error {
 		return err
 	}
 	for {
-		status := ar.GetCurrentStatus()
+		status := servicer.GetCurrentStatus()
 		serviceStatus.StatusCode = status
 		err = stream.Send(&serviceStatus)
 		log.Infof("Sending status: %d", serviceStatus.StatusCode)

@@ -17,6 +17,7 @@ type Server struct {
 	DB     *badger.DB
 }
 
+// SendServiceStatus. Service must be registered first with RegisterService.
 func (s *Server) SendServiceStatus(stream pb.Procjon_SendServiceStatusServer) error {
 	var service pb.Service
 	serviceStatus, err := stream.Recv()
@@ -53,6 +54,7 @@ func (s *Server) SendServiceStatus(stream pb.Procjon_SendServiceStatusServer) er
 	}
 }
 
+// RegisterService in procjon and save it in badger KV store. This registration will persist across procjon restarts.
 func (s *Server) RegisterService(ctx context.Context, service *pb.Service) (*pb.Empty, error) {
 	err := SaveService(s.DB, service)
 	log.WithField("service", service.Identifier).Info("registered service")

@@ -17,7 +17,7 @@ var systemdCmd = &cobra.Command{
 	Use:   "procjonsystemd",
 	Short: "procjonsystemd is procjon agent",
 	Long: `Procjonsystemd is procjon agent which monitors status of 
-	systemd unit. Please refer to https://www.freedesktop.org/wiki/Software/systemd/dbus/ 
+	systemd unit. Please refer to https://www.freedesktop.org/software/systemd/man/org.freedesktop.systemd1.html#Properties1 
 	for description of possible systemd unit states.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		defer conn.Close()
@@ -27,8 +27,8 @@ var systemdCmd = &cobra.Command{
 		}
 		defer connDbus.Close()
 
-		monitor := agent.SystemdService{
-			UnitName:   unit,
+		monitor := agent.SystemdUnit{
+			Name:       unit,
 			Connection: connDbus,
 		}
 		log.Fatalln(service.Run(&monitor, conn))

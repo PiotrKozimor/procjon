@@ -19,18 +19,18 @@ type clusterHealth struct {
 	Status string
 }
 
-// Elasticsearch holds URL of host to monitor and http client.
+// Elasticsearch monitors Elsaticsearch cluster. It consumes cluster health API: https://www.elastic.co/guide/en/elasticsearch/reference/current/cluster-health.html.
+// When error eccurs using API, status "unknown" is returned.
 type Elasticsearch struct {
 	Host   string
 	Client httpClient
 }
 
-// httpClient is defined for testing purposes.
 type httpClient interface {
 	Get(url string) (resp *http.Response, err error)
 }
 
-// GetCurrentStatus fetches Elasticsearch cluster health from e.host
+// GetCurrentStatus fetches Elasticsearch /_cluster/health APT to get status.
 func (e *Elasticsearch) GetCurrentStatus() uint32 {
 	var clusterStatus clusterHealth
 	resp, err := e.Client.Get(fmt.Sprintf("%s/_cluster/health", e.Host))
@@ -57,7 +57,7 @@ func (e *Elasticsearch) GetCurrentStatus() uint32 {
 	return 3
 }
 
-// GetStatuses defined for ElasticsearchMonitor.
+// GetStatuses just returns al posiible statuses for Elasticsearch.
 func (e *Elasticsearch) GetStatuses() []string {
 	return elasticsearchStatuses
 }

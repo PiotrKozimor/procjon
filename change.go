@@ -4,8 +4,7 @@ import (
 	"time"
 )
 
-// When Run() is called, callback will be called with false when timeout has expired since last Ping.
-// When pinged after timeout occured. callback will be called with true.
+// Availability triggers action with respect to provided timeout and Ping calls.
 type Availability struct {
 	timer     *time.Timer
 	refresh   chan bool
@@ -14,10 +13,11 @@ type Availability struct {
 	callback  func(bool)
 }
 
-// NewAvailability creates new Availability object with provided timeout and callback.
+// NewAvailability creates new Availability struct with provided timeout and callback.
 // Use av.Run() function to start detecting availability changes.
 // Call av.Ping() to renew timeout.
 // Callback will be called after first Ping() call. We assume initial inavailability.
+// New Timer is created, so callback will be called unless Availability is pinged in prvided timeout.
 func NewAvailability(timeout time.Duration, callback func(bool)) *Availability {
 	a := Availability{
 		refresh:   make(chan bool),
@@ -35,7 +35,8 @@ func (a *Availability) Ping() {
 }
 
 // Run will detect availability changes. Should be run in seperate goroutine.
-// Callback will be called in seperate goroutine.
+// Callbacks are called in seperate goroutine.
+// Callback will be called with false when timeout has expired since last Ping
 func (a *Availability) Run() {
 	for {
 		select {
@@ -52,11 +53,12 @@ func (a *Availability) Run() {
 	}
 }
 
+// StatusCode just holds the value provided in last HasChanged() call.
 type StatusCode struct {
 	last uint32
 }
 
-// HasChanged returns true if new is different than value from previous call.
+// HasChanged returns true if new is different than value from previous call. Otherwise, it returns false.
 func (stc *StatusCode) HasChanged(new uint32) (changed bool) {
 	if new != stc.last {
 		stc.last = new

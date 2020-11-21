@@ -15,10 +15,10 @@ var systemdUnitStatuses = []string{
 	"unknown",
 }
 
-// SystemdService hold unit name to monitor and Connection
-// to talk to dbus.
-type SystemdService struct {
-	UnitName   string
+// SystemdUnit monitors any systemd unit. Please refer to https://www.freedesktop.org/software/systemd/man/org.freedesktop.systemd1.html#Properties1
+// for list of possible unit statuses.
+type SystemdUnit struct {
+	Name       string
 	Connection listUnits
 }
 
@@ -30,9 +30,9 @@ type systemdUnitStatus struct {
 	ActiveStatus string
 }
 
-// GetCurrentStatus of SystemdServiceMonitor.Unit from dbus.
-func (m *SystemdService) GetCurrentStatus() uint32 {
-	statuses, err := m.Connection.ListUnitsByNames([]string{m.UnitName})
+// GetCurrentStatus of SystemdUnit.Name from dbus.
+func (m *SystemdUnit) GetCurrentStatus() uint32 {
+	statuses, err := m.Connection.ListUnitsByNames([]string{m.Name})
 	if err != nil {
 		log.Error(err)
 		return 6
@@ -46,7 +46,7 @@ func (m *SystemdService) GetCurrentStatus() uint32 {
 	return 6
 }
 
-// GetStatuses statuses defined for SystemdServiceMonitor.
-func (m *SystemdService) GetStatuses() []string {
+// GetStatuses returns possible statuses defined for SystemdUnit.
+func (m *SystemdUnit) GetStatuses() []string {
 	return systemdUnitStatuses
 }

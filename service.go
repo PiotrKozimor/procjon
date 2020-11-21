@@ -9,13 +9,13 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// LoadService from badger. Service is uniquely identified by
-// pb.ServiceStatus.ServiceIdentifier.
+// LoadService from badger KV store. Service is uniquely identified by
+// pb.ServiceStatus.Identifier.
 func LoadService(db *badger.DB, service *pb.Service, status *pb.ServiceStatus) error {
 	return db.View(func(txn *badger.Txn) error {
 		marshService, err := txn.Get([]byte(status.Identifier))
 		if errors.Is(err, badger.ErrKeyNotFound) {
-			return fmt.Errorf("Service not registered")
+			return fmt.Errorf("service not registered")
 		}
 		if err != nil {
 			return err
@@ -26,7 +26,8 @@ func LoadService(db *badger.DB, service *pb.Service, status *pb.ServiceStatus) e
 	})
 }
 
-// SaveService to badger using protobuf.
+// SaveService to badger KV store using protobuf.
+// If service with given pb.Service.Identifier exists it will be overwritten.
 func SaveService(db *badger.DB, service *pb.Service) error {
 	err := db.Update(func(txn *badger.Txn) error {
 		marshalled, err := proto.Marshal(service)
