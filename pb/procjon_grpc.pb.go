@@ -11,7 +11,7 @@ import (
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion6
+const _ = grpc.SupportPackageIsVersion7
 
 // ProcjonClient is the client API for Procjon service.
 //
@@ -85,15 +85,22 @@ type ProcjonServer interface {
 type UnimplementedProcjonServer struct {
 }
 
-func (*UnimplementedProcjonServer) RegisterService(context.Context, *Service) (*Empty, error) {
+func (UnimplementedProcjonServer) RegisterService(context.Context, *Service) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterService not implemented")
 }
-func (*UnimplementedProcjonServer) SendServiceStatus(Procjon_SendServiceStatusServer) error {
+func (UnimplementedProcjonServer) SendServiceStatus(Procjon_SendServiceStatusServer) error {
 	return status.Errorf(codes.Unimplemented, "method SendServiceStatus not implemented")
 }
-func (*UnimplementedProcjonServer) mustEmbedUnimplementedProcjonServer() {}
+func (UnimplementedProcjonServer) mustEmbedUnimplementedProcjonServer() {}
 
-func RegisterProcjonServer(s *grpc.Server, srv ProcjonServer) {
+// UnsafeProcjonServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ProcjonServer will
+// result in compilation errors.
+type UnsafeProcjonServer interface {
+	mustEmbedUnimplementedProcjonServer()
+}
+
+func RegisterProcjonServer(s grpc.ServiceRegistrar, srv ProcjonServer) {
 	s.RegisterService(&_Procjon_serviceDesc, srv)
 }
 
