@@ -23,12 +23,17 @@ How does procjon work?
 Important operating principle of procjon is that reliability of monitoring server is higher that infrastructure to monitor. Procjon was designed to deal with unreliable internal infrastructure and many processes which were set-up and then left forgotten (e.g. long term tests). HA is not yet planned. 
 
 ## Running procjon
-To run procjon, certificates must be generated. See [script](.cert_gen.sh) used for testing purposes. Script will generate certificates to `.certs` directory. Having certificates, get binaries from [releases](releases) or install it using go:
+To run procjon, certificates must be generated. See [script](.cert_gen.sh) used for testing purposes (will work only on localhost). Script will generate certificates to `.certs` directory. Having certificates, get binaries from [releases](releases) or install it using go:
 ```
+$ go get github.com/PiotrKozimor/procjon/procjon
 $ go install github.com/PiotrKozimor/procjon/procjon
+$ go get github.com/PiotrKozimor/procjon/procjonagent
 $ go install github.com/PiotrKozimor/procjon/procjonagent
 ```
-
+Export slack webhook (assuming testing webhook here):
+```
+export PROCJON_SLACK_WEBHOOK=https://slack.com/api/api.test
+```
 Then run procjon (assuming certificates in `.certs` directory):
 ```
 $ ./procjon -l debug
