@@ -7,6 +7,7 @@
 [![Godoc](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](https://pkg.go.dev/github.com/PiotrKozimor/procjon)
 [![Releases](https://img.shields.io/github/release/PiotrKozimor/procjon.svg?style=flat-square)](https://github.com/PiotrKozimor/procjon/releases)
 
+![procjon](procjon.gif)
 
 Procjon is simple monitoring tool written in Go. It is a deamon which sends updates to Slack webhook when status of monitored service changes.
 Service status is sent to procjon by procjonagent. Service is abstracted by `Servicer` interface. It can be for example host itself, systemd unit or elasticsearch node.
